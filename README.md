@@ -1,4 +1,4 @@
-# trace-ca: Government of Canada Data Platform
+# CADagent: Government of Canada Data Platform
 
 A data platform that ingests Government of Canada open data (Finance, StatCan, TBS-SCT), extracts tables from raw files, normalizes messy headers into canonical dimensions, and loads clean facts into BigQuery. An agent API layer answers natural-language questions with SQL and source provenance.
 
