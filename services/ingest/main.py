@@ -18,7 +18,9 @@ def main() -> None:
     configure_logging(settings.log_level, service="ingest")
     logger.info("Starting ingest service")
 
-    config = IngestConfig()
+    config = IngestConfig(
+        max_resources=int(os.getenv("MAX_RESOURCES", "0")),
+    )
     mode = os.getenv("INGEST_MODE", "incremental")
 
     api_client = GocApiClient(

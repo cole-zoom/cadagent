@@ -1,0 +1,137 @@
+# Cloud Build pipeline
+# Triggers on push to main — runs tests, builds all 4 images, deploys to Cloud Run
+
+substitutions:
+  _REGION: us-east1
+  _REPO: trace-ca
+
+steps:
+  # ---- Run tests ----
+  - id: test
+    name: python:3.12-slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        pip install -q pydantic pydantic-settings pyyaml requests pytest \
+          google-cloud-bigquery google-cloud-storage \
+          openpyxl xlrd beautifulsoup4 lxml rapidfuzz \
+          fastapi uvicorn anthropic sqlglot
+        pip install -e . --quiet
+        python -m pytest tests/ -q
+
+  # ---- Build images (parallel) ----
+  - id: build-ingest
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform=linux/amd64
+      - -f=services/ingest/Dockerfile
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/ingest:$SHORT_SHA
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/ingest:latest
+      - .
+    waitFor: [test]
+
+  - id: build-extract
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform=linux/amd64
+      - -f=services/extract/Dockerfile
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/extract:$SHORT_SHA
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/extract:latest
+      - .
+    waitFor: [test]
+
+  - id: build-normalize
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform=linux/amd64
+      - -f=services/normalize/Dockerfile
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/normalize:$SHORT_SHA
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/normalize:latest
+      - .
+    waitFor: [test]
+
+  - id: build-agent-api
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform=linux/amd64
+      - -f=services/agent_api/Dockerfile
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/agent-api:$SHORT_SHA
+      - -t=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/agent-api:latest
+      - .
+    waitFor: [test]
+
+  # ---- Push images (parallel) ----
+  - id: push-ingest
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/ingest"]
+    waitFor: [build-ingest]
+
+  - id: push-extract
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/extract"]
+    waitFor: [build-extract]
+
+  - id: push-normalize
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/normalize"]
+    waitFor: [build-normalize]
+
+  - id: push-agent-api
+    name: gcr.io/cloud-builders/docker
+    args: [push, --all-tags, "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/agent-api"]
+    waitFor: [build-agent-api]
+
+  # ---- Deploy agent API (the only always-on service) ----
+  - id: deploy-agent-api
+    name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - deploy
+      - agent-api-dev
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/agent-api:$SHORT_SHA
+      - --region=${_REGION}
+      - --quiet
+    waitFor: [push-agent-api]
+
+  # ---- Update Cloud Run jobs to use new images ----
+  - id: update-ingest
+    name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - jobs
+      - update
+      - ingest-dev
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/ingest:$SHORT_SHA
+      - --region=${_REGION}
+    waitFor: [push-ingest]
+
+  - id: update-extract
+    name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - jobs
+      - update
+      - extract-dev
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/extract:$SHORT_SHA
+      - --region=${_REGION}
+    waitFor: [push-extract]
+
+  - id: update-normalize
+    name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - jobs
+      - update
+      - normalize-dev
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/normalize:$SHORT_SHA
+      - --region=${_REGION}
+    waitFor: [push-normalize]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8

@@ -10,13 +10,15 @@ This is not a "shortest path to prod" guide. It prioritizes a workflow where you
 
 Install these on your machine before starting:
 
-| Tool | Version | Install |
-|------|---------|---------|
-| `gcloud` CLI | latest | `brew install google-cloud-sdk` |
-| `terraform` | >= 1.5 | `brew install terraform` |
-| `docker` | latest | Docker Desktop or `brew install docker` |
-| `python` | 3.12+ | `brew install python@3.12` |
-| `git` | latest | already installed on macOS |
+
+| Tool         | Version | Install                                 |
+| ------------ | ------- | --------------------------------------- |
+| `gcloud` CLI | latest  | `brew install google-cloud-sdk`         |
+| `terraform`  | >= 1.5  | `brew install terraform`                |
+| `docker`     | latest  | Docker Desktop or `brew install docker` |
+| `python`     | 3.12+   | `brew install python@3.12`              |
+| `git`        | latest  | already installed on macOS              |
+
 
 ---
 
@@ -154,6 +156,7 @@ terraform plan
 ```
 
 Review the output. It will create approximately 15 resources:
+
 - 2 GCS buckets (raw, processed)
 - 4 BigQuery datasets (raw, stg, cur, quality)
 - 1 service account + 6 IAM bindings
@@ -289,6 +292,7 @@ python scripts/seed_mappings.py
 ```
 
 You should see:
+
 ```
 Seeded 3 departments
 Seeded 22 geographies
@@ -457,8 +461,8 @@ Start with one department to verify the pipeline works end-to-end:
 
 ```bash
 gcloud run jobs execute ingest-dev \
-  --region=$REGION \
-  --set-env-vars="DEPARTMENTS=fin,INGEST_MODE=incremental"
+  --region=us-east1 \
+  --update-env-vars="DEPARTMENTS=fin,INGEST_MODE=incremental"
 ```
 
 ### 7.2 Watch logs
@@ -466,7 +470,7 @@ gcloud run jobs execute ingest-dev \
 In a separate terminal:
 
 ```bash
-gcloud run jobs executions list --job=ingest-dev --region=$REGION --limit=1
+gcloud run jobs executions list --job=ingest-dev --region=us-east1 --limit=1
 
 # Get the execution name, then stream logs:
 gcloud logging read "resource.type=cloud_run_job AND resource.labels.job_name=ingest-dev" \
@@ -498,7 +502,7 @@ gsutil ls gs://${PROJECT_ID}-raw/raw/goc/department=fin/ | head -5
 ```bash
 gcloud run jobs execute extract-dev \
   --region=$REGION \
-  --set-env-vars="DEPARTMENT=fin"
+  --update-env-vars="DEPARTMENT=fin"
 ```
 
 Verify:
@@ -516,7 +520,7 @@ bq query --use_legacy_sql=false \
 ```bash
 gcloud run jobs execute normalize-dev \
   --region=$REGION \
-  --set-env-vars="DEPARTMENT=fin"
+  --update-env-vars="DEPARTMENT=fin"
 ```
 
 Verify:
@@ -536,11 +540,13 @@ bq query --use_legacy_sql=false \
 
 ### 7.6 Run all three departments
 
-Once fin works, run the full pipeline:
+Once fin works, run the full pipeline. StatCan has ~18,000 resources so use `MAX_RESOURCES` to cap it (1000 is a good starting point — you can always ingest more later with incremental mode):
 
 ```bash
-# Ingest all
-gcloud run jobs execute ingest-dev --region=$REGION
+# Ingest all (cap statcan to avoid a 1-hour+ run)
+gcloud run jobs execute ingest-dev \
+  --region=$REGION \
+  --update-env-vars="MAX_RESOURCES=1000"
 
 # Extract all
 gcloud run jobs execute extract-dev --region=$REGION
@@ -549,11 +555,95 @@ gcloud run jobs execute extract-dev --region=$REGION
 gcloud run jobs execute normalize-dev --region=$REGION
 ```
 
+Set `MAX_RESOURCES=0` (or omit it) for unlimited. The limit applies per-department per-execution, and incremental mode skips already-ingested resources, so you can run it again later to pick up more.
+
 ---
 
-## Section 8: Agent API
+## Section 8: CI/CD with Cloud Build
 
-### 8.1 Store the Anthropic API key
+Instead of building and pushing images manually every time you change code, set up Cloud Build to do it on push to `main`.
+
+### 8.1 Connect your GitHub repo
+
+Go to the Cloud Build console to link your repo (this is a one-time UI step):
+
+```
+https://console.cloud.google.com/cloud-build/triggers/connect?project=duwillagence
+```
+
+1. Select **GitHub** as the source
+2. Authenticate with GitHub
+3. Select your `trace-ca` repository
+4. Check the consent box and click **Connect**
+
+### 8.2 Create the build trigger
+
+```bash
+gcloud builds triggers create github \
+  --repo-name=trace-ca \
+  --repo-owner=YOUR_GITHUB_USERNAME \
+  --branch-pattern="^main$" \
+  --build-config=cloudbuild.yaml \
+  --region=$REGION \
+  --name=deploy-on-push
+```
+
+Replace `YOUR_GITHUB_USERNAME` with your GitHub username or org.
+
+### 8.3 Grant Cloud Build permissions
+
+Cloud Build needs to deploy to Cloud Run and push to Artifact Registry:
+
+```bash
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+
+# Cloud Run admin (deploy services and update jobs)
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+  --role="roles/run.admin"
+
+# Act as the pipeline service account when deploying
+gcloud iam service-accounts add-iam-policy-binding \
+  trace-pipeline@${PROJECT_ID}.iam.gserviceaccount.com \
+  --member="serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+```
+
+### 8.4 Test it
+
+Push a commit to `main`:
+
+```bash
+git add .
+git commit -m "Add Cloud Build CI/CD"
+git push origin main
+```
+
+Watch the build:
+
+```bash
+gcloud builds list --region=$REGION --limit=1
+gcloud builds log BUILD_ID --region=$REGION --stream
+```
+
+Or in the console: **Cloud Build > History**.
+
+### 8.5 What the pipeline does
+
+On every push to `main`, `cloudbuild.yaml` runs:
+
+1. **Tests** — `pytest tests/ -q` (fails the build if any test fails)
+2. **Build** — all 4 Docker images in parallel (tagged with git SHA + `latest`)
+3. **Push** — to Artifact Registry
+4. **Deploy** — updates the agent API service and all 3 Cloud Run jobs to use the new image
+
+After this, you never manually `docker build` or `docker push` again. Just push code.
+
+---
+
+## Section 9: Agent API
+
+### 9.1 Store the Anthropic API key
 
 Use Secret Manager instead of environment variables for secrets:
 
@@ -567,7 +657,7 @@ gcloud secrets add-iam-policy-binding anthropic-api-key \
   --role="roles/secretmanager.secretAccessor"
 ```
 
-### 8.2 Deploy with the secret
+### 9.2 Deploy with the secret
 
 ```bash
 gcloud run deploy agent-api-dev \
@@ -582,14 +672,14 @@ gcloud run deploy agent-api-dev \
   --port=8080
 ```
 
-### 8.3 Get the service URL
+### 9.3 Get the service URL
 
 ```bash
 export API_URL=$(gcloud run services describe agent-api-dev --region=$REGION --format="value(status.url)")
 echo $API_URL
 ```
 
-### 8.4 Test it
+### 9.4 Test it
 
 ```bash
 # Health check
@@ -609,11 +699,11 @@ curl -X POST ${API_URL}/explain \
 
 ---
 
-## Section 9: Local Development Workflow
+## Section 10: Local Development Workflow
 
 This is the day-to-day flow for iterating on the pipeline.
 
-### 9.1 Run services locally
+### 10.1 Run services locally
 
 You don't need Docker or Cloud Run to test code changes. The services work locally with ADC:
 
@@ -635,7 +725,7 @@ uvicorn services.agent_api.main:app --reload --port 8080
 
 The `--reload` flag on uvicorn restarts the server when you change code. Your local `.env` file provides the config.
 
-### 9.2 Run tests
+### 10.2 Run tests
 
 ```bash
 # Full suite
@@ -648,7 +738,7 @@ python -m pytest tests/shared/utils/test_time_parsing.py -v
 python -m pytest tests/ --cov=shared --cov=services --cov-report=term-missing
 ```
 
-### 9.3 Deploy a code change
+### 10.3 Deploy a code change
 
 The typical cycle:
 
@@ -674,7 +764,7 @@ For the agent API (always-on service), updating the image triggers a new revisio
 gcloud run deploy agent-api-dev --image=${REGISTRY}/agent-api:latest --region=$REGION
 ```
 
-### 9.4 Tail logs during development
+### 10.4 Tail logs during development
 
 ```bash
 # Stream Cloud Run service logs (agent API)
@@ -685,7 +775,7 @@ gcloud logging read "resource.type=cloud_run_job AND resource.labels.job_name=in
   --limit=100 --format="value(jsonPayload.message)" --freshness=5m
 ```
 
-### 9.5 Query BigQuery from terminal
+### 10.5 Query BigQuery from terminal
 
 ```bash
 # Ad-hoc queries
@@ -698,17 +788,17 @@ bq shell
 
 ---
 
-## Section 10: Scheduling (Optional)
+## Section 11: Scheduling (Optional)
 
 Set up recurring ingestion with Cloud Scheduler.
 
-### 10.1 Enable Cloud Scheduler
+### 11.1 Enable Cloud Scheduler
 
 ```bash
 gcloud services enable cloudscheduler.googleapis.com
 ```
 
-### 10.2 Create a schedule
+### 11.2 Create a schedule
 
 ```bash
 # Run ingestion every Sunday at 3 AM ET
@@ -721,7 +811,7 @@ gcloud scheduler jobs create http ingest-weekly \
   --oauth-service-account-email=trace-pipeline@${PROJECT_ID}.iam.gserviceaccount.com
 ```
 
-### 10.3 Chain jobs
+### 11.3 Chain jobs
 
 To run extract after ingest and normalize after extract, use Cloud Workflows or a simple orchestrator script:
 
@@ -750,7 +840,7 @@ The `--wait` flag blocks until the job finishes, so the steps run sequentially.
 
 ---
 
-## Section 11: Debugging Checklist
+## Section 12: Debugging Checklist
 
 When something goes wrong, check in this order:
 
@@ -812,19 +902,21 @@ The pipeline SA needs: `bigquery.dataEditor`, `bigquery.jobUser`, `storage.objec
 
 ---
 
-## Section 12: Cost Awareness
+## Section 13: Cost Awareness
 
 This setup is cheap for a dev environment. Approximate monthly costs at low volume:
 
-| Resource | Cost |
-|----------|------|
-| Cloud Run jobs (3 jobs, ~1 hour/week total) | ~$0.50 |
-| Cloud Run service (agent API, scales to 0) | ~$0-5 (pay per request) |
-| GCS storage (a few GB of GoC files) | ~$0.50 |
-| BigQuery (< 1 TB stored, < 1 TB queried) | Free tier covers it |
-| Artifact Registry (4 images) | ~$0.50 |
-| Anthropic API (per agent query) | $0.003-0.015 per query |
-| **Total (excluding Anthropic)** | **~$2-7/month** |
+
+| Resource                                    | Cost                    |
+| ------------------------------------------- | ----------------------- |
+| Cloud Run jobs (3 jobs, ~1 hour/week total) | ~$0.50                  |
+| Cloud Run service (agent API, scales to 0)  | ~$0-5 (pay per request) |
+| GCS storage (a few GB of GoC files)         | ~$0.50                  |
+| BigQuery (< 1 TB stored, < 1 TB queried)    | Free tier covers it     |
+| Artifact Registry (4 images)                | ~$0.50                  |
+| Anthropic API (per agent query)             | $0.003-0.015 per query  |
+| **Total (excluding Anthropic)**             | **~$2-7/month**         |
+
 
 The biggest cost driver will be Anthropic API usage once the agent API is active. Budget accordingly.
 
@@ -861,3 +953,4 @@ bq query --use_legacy_sql=false "SELECT ..."
 # Local dev server
 uvicorn services.agent_api.main:app --reload --port 8080
 ```
+

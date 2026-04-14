@@ -69,13 +69,21 @@ def ingest_department(
     logger.info("Found %d datasets for %s", len(datasets), department_code)
 
     stats = {"success": 0, "skipped": 0, "failed": 0, "duplicate": 0}
+    resources_processed = 0
 
     for dataset in datasets:
+        if config.max_resources and resources_processed >= config.max_resources:
+            logger.info("Hit max_resources limit (%d), stopping", config.max_resources)
+            break
+
         dataset_title = GocApiClient.extract_title(dataset)
         document_type = infer_document_type(dataset_title)
         resources = api_client.list_resources(dataset)
 
         for resource in resources:
+            if config.max_resources and resources_processed >= config.max_resources:
+                break
+
             resource_url = resource.get("url", "")
             if not resource_url:
                 continue
@@ -152,6 +160,8 @@ def ingest_department(
             except Exception as e:
                 logger.error("BQ insert exception for %s: %s", doc_id, e)
                 stats["failed"] += 1
+
+            resources_processed += 1
 
     logger.info("Ingestion complete for %s: %s", department_code, stats)
     return stats

@@ -5,5 +5,6 @@ from dataclasses import dataclass
 class IngestConfig:
     batch_size: int = 50
     max_file_size_mb: int = 500
+    max_resources: int = 0  # 0 = unlimited
     retry_count: int = 3
     rate_limit_delay: float = 0.5
