@@ -1,0 +1,298 @@
+# junk_headers.yaml
+# Regex patterns for raw headers the normalization service should skip.
+# These are structural/formatting/metadata fields that carry no analytic value.
+# Maintained by: trace-ca normalization service
+#
+# Usage: if any pattern matches the header string (case-insensitive), drop it.
+
+junk_patterns:
+
+  # ---------------------------------------------------------------------------
+  # StatCan SDMX structure metadata
+  # Headers leaked from SDMX-ML Concept Scheme / Data Structure Definition
+  # ---------------------------------------------------------------------------
+  - pattern: "^@id$"
+    source: statcan_sdmx
+    note: "SDMX element identifier attribute"
+
+  - pattern: "^@urn$"
+    source: statcan_sdmx
+    note: "SDMX universal resource name"
+
+  - pattern: "^@lang$"
+    source: statcan_sdmx
+    note: "XML language attribute"
+
+  - pattern: "^@agencyID$"
+    source: statcan_sdmx
+    note: "SDMX maintenance agency identifier"
+
+  - pattern: "^@version$"
+    source: statcan_sdmx
+    note: "SDMX artefact version"
+
+  - pattern: "^@package$"
+    source: statcan_sdmx
+    note: "SDMX package declaration"
+
+  - pattern: "^@class$"
+    source: statcan_sdmx
+    note: "SDMX class type"
+
+  - pattern: "^@assignmentStatus$"
+    source: statcan_sdmx
+    note: "SDMX attribute assignment status"
+
+  - pattern: "^@position$"
+    source: statcan_sdmx
+    note: "SDMX dimension position"
+
+  - pattern: "^@maintainableParentID$"
+    source: statcan_sdmx
+    note: "SDMX parent artefact ID"
+
+  - pattern: "^@maintainableParentVersion$"
+    source: statcan_sdmx
+    note: "SDMX parent artefact version"
+
+  - pattern: "^ConceptIdentity$"
+    source: statcan_sdmx
+    note: "SDMX concept identity reference"
+
+  - pattern: "^LocalRepresentation$"
+    source: statcan_sdmx
+    note: "SDMX local representation block"
+
+  - pattern: "^AttributeRelationship$"
+    source: statcan_sdmx
+    note: "SDMX attribute relationship definition"
+
+  - pattern: "^Enumeration$"
+    source: statcan_sdmx
+    note: "SDMX enumeration reference"
+
+  - pattern: "^TextFormat$"
+    source: statcan_sdmx
+    note: "SDMX text format specification"
+
+  - pattern: "^Dimension$"
+    source: statcan_sdmx
+    note: "SDMX dimension element (structural)"
+
+  - pattern: "^PrimaryMeasure$"
+    source: statcan_sdmx
+    note: "SDMX primary measure definition"
+
+  - pattern: "^AnnotationTitle$"
+    source: statcan_sdmx
+    note: "SDMX annotation title"
+
+  - pattern: "^AnnotationType$"
+    source: statcan_sdmx
+    note: "SDMX annotation type"
+
+  - pattern: "^AnnotationText$"
+    source: statcan_sdmx
+    note: "SDMX annotation text content"
+
+  - pattern: "^Annotation$"
+    source: statcan_sdmx
+    note: "SDMX annotation container"
+
+  - pattern: "^Annotations$"
+    source: statcan_sdmx
+    note: "SDMX annotations collection"
+
+  - pattern: "^Ref$"
+    source: statcan_sdmx
+    note: "SDMX cross-reference element"
+
+  - pattern: "^Name$"
+    source: statcan_sdmx
+    note: "SDMX name element (structural label, not data)"
+
+  - pattern: "^Code$"
+    source: statcan_sdmx
+    note: "SDMX codelist code element"
+
+  # ---------------------------------------------------------------------------
+  # TBS-SCT SpreadsheetML formatting attributes
+  # Leaked from Excel XML (SpreadsheetML) used in InfoBase exports
+  # ---------------------------------------------------------------------------
+  - pattern: "^@Color$"
+    source: tbs_spreadsheetml
+    note: "Cell or font color"
+
+  - pattern: "^@Pattern$"
+    source: tbs_spreadsheetml
+    note: "Cell pattern fill"
+
+  - pattern: "^@FontName$"
+    source: tbs_spreadsheetml
+    note: "Font family name"
+
+  - pattern: "^@Family$"
+    source: tbs_spreadsheetml
+    note: "Font family classification"
+
+  - pattern: "^@Size$"
+    source: tbs_spreadsheetml
+    note: "Font size"
+
+  - pattern: "^@Bold$"
+    source: tbs_spreadsheetml
+    note: "Bold formatting flag"
+
+  - pattern: "^@Italic$"
+    source: tbs_spreadsheetml
+    note: "Italic formatting flag"
+
+  - pattern: "^@Vertical$"
+    source: tbs_spreadsheetml
+    note: "Vertical alignment"
+
+  - pattern: "^@Horizontal$"
+    source: tbs_spreadsheetml
+    note: "Horizontal alignment"
+
+  - pattern: "^@WrapText$"
+    source: tbs_spreadsheetml
+    note: "Text wrapping flag"
+
+  - pattern: "^@LineStyle$"
+    source: tbs_spreadsheetml
+    note: "Border line style"
+
+  - pattern: "^@Weight$"
+    source: tbs_spreadsheetml
+    note: "Border line weight"
+
+  - pattern: "^@StyleID$"
+    source: tbs_spreadsheetml
+    note: "SpreadsheetML style identifier"
+
+  - pattern: "^@MergeAcross$"
+    source: tbs_spreadsheetml
+    note: "Horizontal cell merge count"
+
+  - pattern: "^@MergeDown$"
+    source: tbs_spreadsheetml
+    note: "Vertical cell merge count"
+
+  - pattern: "^@Index$"
+    source: tbs_spreadsheetml
+    note: "SpreadsheetML column/row index"
+
+  - pattern: "^@AutoFitHeight$"
+    source: tbs_spreadsheetml
+    note: "Auto-fit row height flag"
+
+  - pattern: "^@AutoFitWidth$"
+    source: tbs_spreadsheetml
+    note: "Auto-fit column width flag"
+
+  - pattern: "^Border$"
+    source: tbs_spreadsheetml
+    note: "Border formatting element"
+
+  - pattern: "^Borders$"
+    source: tbs_spreadsheetml
+    note: "Borders collection element"
+
+  # ---------------------------------------------------------------------------
+  # StatCan technical / internal fields
+  # Columns present in CANSIM/NDM CSV downloads that are not analytic data
+  # ---------------------------------------------------------------------------
+  - pattern: "^@DGUID$"
+    source: statcan_technical
+    note: "Dissemination Geography Unique Identifier (attribute form)"
+
+  - pattern: "^DGUID$"
+    source: statcan_technical
+    note: "Dissemination Geography Unique Identifier"
+
+  - pattern: "^@VECTOR_ID$"
+    source: statcan_technical
+    note: "StatCan vector identifier (attribute form)"
+
+  - pattern: "^@SCALAR_FACTOR$"
+    source: statcan_technical
+    note: "Scalar factor attribute"
+
+  - pattern: "^SCALAR_FACTOR$"
+    source: statcan_technical
+    note: "Scalar factor field"
+
+  - pattern: "^SCALAR_ID$"
+    source: statcan_technical
+    note: "Scalar identifier"
+
+  - pattern: "^@NB_DECIMAL$"
+    source: statcan_technical
+    note: "Number of decimals attribute"
+
+  - pattern: "^@TERMINATED$"
+    source: statcan_technical
+    note: "Series termination flag (attribute form)"
+
+  - pattern: "^TERMINATED$"
+    source: statcan_technical
+    note: "Series termination flag"
+
+  - pattern: "^@STATUS_CAN$"
+    source: statcan_technical
+    note: "StatCan status code (attribute form)"
+
+  - pattern: "^STATUS$"
+    source: statcan_technical
+    note: "Observation status code"
+
+  - pattern: "^@SECURITY_LEVEL$"
+    source: statcan_technical
+    note: "Security classification level"
+
+  - pattern: "^@SYMBOL$"
+    source: statcan_technical
+    note: "Symbol attribute (suppression marker)"
+
+  - pattern: "^SYMBOL$"
+    source: statcan_technical
+    note: "Symbol field (suppression marker)"
+
+  - pattern: "^COORDINATE$"
+    source: statcan_technical
+    note: "CANSIM coordinate string"
+
+  - pattern: "^DECIMALS$"
+    source: statcan_technical
+    note: "Decimal precision indicator"
+
+  - pattern: "^UOM_ID$"
+    source: statcan_technical
+    note: "Unit of measure identifier"
+
+  - pattern: "^VECTOR$"
+    source: statcan_technical
+    note: "StatCan vector number"
+
+  # ---------------------------------------------------------------------------
+  # Generic junk
+  # ---------------------------------------------------------------------------
+  - pattern: "^@code$"
+    source: generic
+    note: "Generic code attribute"
+
+  - pattern: "^@iso-date$"
+    source: generic
+    note: "ISO date attribute (structural, not a value)"
+
+  - pattern: "^\\s*$"
+    source: generic
+    note: "Empty or whitespace-only header"
+
+  # ---------------------------------------------------------------------------
+  # Catch-all patterns for broad categories
+  # ---------------------------------------------------------------------------
+  - pattern: "^@[A-Z][a-zA-Z]*$"
+    source: catch_all
+    note: "Any remaining @PascalCase formatting attribute not listed above"

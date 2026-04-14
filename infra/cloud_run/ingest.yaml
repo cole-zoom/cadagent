@@ -1,0 +1,25 @@
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: ingest
+spec:
+  template:
+    spec:
+      template:
+        spec:
+          containers:
+            - image: REGION-docker.pkg.dev/PROJECT_ID/trace-ca/ingest:latest
+              resources:
+                limits:
+                  memory: "1Gi"
+                  cpu: "1"
+              env:
+                - name: GCP_PROJECT_ID
+                  value: PROJECT_ID
+                - name: GCS_RAW_BUCKET
+                  value: PROJECT_ID-raw
+                - name: GCS_PROCESSED_BUCKET
+                  value: PROJECT_ID-processed
+                - name: INGEST_MODE
+                  value: incremental
+          timeoutSeconds: 3600

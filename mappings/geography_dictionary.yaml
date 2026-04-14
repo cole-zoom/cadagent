@@ -1,0 +1,305 @@
+# geography_dictionary.yaml
+# Normalization mapping: raw GoC geographic headers -> canonical geography entities
+# Sources: StatCan standard classification, Finance Canada, TBS-SCT
+# Maintained by: trace-ca normalization service
+
+geographies:
+
+  # ---------------------------------------------------------------------------
+  # NATIONAL AGGREGATES
+  # ---------------------------------------------------------------------------
+  CA:
+    canonical_name_en: "Canada"
+    canonical_name_fr: "Canada"
+    geo_level: country
+    iso_alpha2: "CA"
+    iso_alpha3: "CAN"
+    sgc_code: "01"
+    synonyms:
+      - "canada"
+      - "can"
+      - "ca"
+      - "total, canada"
+
+  total_provinces:
+    canonical_name_en: "Total Provinces"
+    canonical_name_fr: "Total des provinces"
+    geo_level: aggregate
+    sgc_code: null
+    synonyms:
+      - "total provinces"
+      - "total des provinces"
+      - "all provinces"
+      - "provinces"
+
+  total_territories:
+    canonical_name_en: "Total Territories"
+    canonical_name_fr: "Total des territoires"
+    geo_level: aggregate
+    sgc_code: null
+    synonyms:
+      - "total territories"
+      - "total des territoires"
+      - "all territories"
+      - "territories"
+      - "territoires"
+
+  # ---------------------------------------------------------------------------
+  # PROVINCES (West to East)
+  # ---------------------------------------------------------------------------
+  BC:
+    canonical_name_en: "British Columbia"
+    canonical_name_fr: "Colombie-Britannique"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "BC"
+    sgc_code: "59"
+    synonyms:
+      - "british columbia"
+      - "colombie-britannique"
+      - "b.c."
+      - "bc"
+      - "c.-b."
+
+  AB:
+    canonical_name_en: "Alberta"
+    canonical_name_fr: "Alberta"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "AB"
+    sgc_code: "48"
+    synonyms:
+      - "alberta"
+      - "ab"
+      - "alta."
+      - "alb."
+
+  SK:
+    canonical_name_en: "Saskatchewan"
+    canonical_name_fr: "Saskatchewan"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "SK"
+    sgc_code: "47"
+    synonyms:
+      - "saskatchewan"
+      - "sk"
+      - "sask."
+
+  MB:
+    canonical_name_en: "Manitoba"
+    canonical_name_fr: "Manitoba"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "MB"
+    sgc_code: "46"
+    synonyms:
+      - "manitoba"
+      - "mb"
+      - "man."
+
+  ON:
+    canonical_name_en: "Ontario"
+    canonical_name_fr: "Ontario"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "ON"
+    sgc_code: "35"
+    synonyms:
+      - "ontario"
+      - "on"
+      - "ont."
+
+  QC:
+    canonical_name_en: "Quebec"
+    canonical_name_fr: "Québec"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "QC"
+    sgc_code: "24"
+    synonyms:
+      - "quebec"
+      - "québec"
+      - "qc"
+      - "que."
+      - "qué."
+
+  NB:
+    canonical_name_en: "New Brunswick"
+    canonical_name_fr: "Nouveau-Brunswick"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "NB"
+    sgc_code: "13"
+    synonyms:
+      - "new brunswick"
+      - "nouveau-brunswick"
+      - "nb"
+      - "n.b."
+      - "n.-b."
+
+  NS:
+    canonical_name_en: "Nova Scotia"
+    canonical_name_fr: "Nouvelle-Écosse"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "NS"
+    sgc_code: "12"
+    synonyms:
+      - "nova scotia"
+      - "nouvelle-écosse"
+      - "ns"
+      - "n.s."
+      - "n.-é."
+
+  PE:
+    canonical_name_en: "Prince Edward Island"
+    canonical_name_fr: "Île-du-Prince-Édouard"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "PE"
+    sgc_code: "11"
+    synonyms:
+      - "prince edward island"
+      - "île-du-prince-édouard"
+      - "pe"
+      - "pei"
+      - "p.e.i."
+      - "î.-p.-é."
+
+  NL:
+    canonical_name_en: "Newfoundland and Labrador"
+    canonical_name_fr: "Terre-Neuve-et-Labrador"
+    geo_level: province
+    iso_alpha2: "CA"
+    province_code: "NL"
+    sgc_code: "10"
+    synonyms:
+      - "newfoundland and labrador"
+      - "terre-neuve-et-labrador"
+      - "nl"
+      - "nfld."
+      - "t.-n.-l."
+      - "newfoundland"
+      - "terre-neuve"
+
+  # ---------------------------------------------------------------------------
+  # TERRITORIES
+  # ---------------------------------------------------------------------------
+  YT:
+    canonical_name_en: "Yukon"
+    canonical_name_fr: "Yukon"
+    geo_level: territory
+    iso_alpha2: "CA"
+    province_code: "YT"
+    sgc_code: "60"
+    synonyms:
+      - "yukon"
+      - "yt"
+      - "yukon territory"
+      - "territoire du yukon"
+
+  NT:
+    canonical_name_en: "Northwest Territories"
+    canonical_name_fr: "Territoires du Nord-Ouest"
+    geo_level: territory
+    iso_alpha2: "CA"
+    province_code: "NT"
+    sgc_code: "61"
+    synonyms:
+      - "northwest territories"
+      - "territoires du nord-ouest"
+      - "nt"
+      - "n.w.t."
+      - "t.n.-o."
+
+  NU:
+    canonical_name_en: "Nunavut"
+    canonical_name_fr: "Nunavut"
+    geo_level: territory
+    iso_alpha2: "CA"
+    province_code: "NU"
+    sgc_code: "62"
+    synonyms:
+      - "nunavut"
+      - "nu"
+      - "nvt."
+
+  # ---------------------------------------------------------------------------
+  # INTERNATIONAL -- Common comparison countries in GoC publications
+  # ---------------------------------------------------------------------------
+  US:
+    canonical_name_en: "United States"
+    canonical_name_fr: "États-Unis"
+    geo_level: country
+    iso_alpha2: "US"
+    iso_alpha3: "USA"
+    synonyms:
+      - "united states"
+      - "états-unis"
+      - "us"
+      - "usa"
+      - "u.s."
+      - "é.-u."
+      - "united states of america"
+
+  GB:
+    canonical_name_en: "United Kingdom"
+    canonical_name_fr: "Royaume-Uni"
+    geo_level: country
+    iso_alpha2: "GB"
+    iso_alpha3: "GBR"
+    synonyms:
+      - "united kingdom"
+      - "royaume-uni"
+      - "uk"
+      - "r.-u."
+      - "great britain"
+      - "grande-bretagne"
+
+  JP:
+    canonical_name_en: "Japan"
+    canonical_name_fr: "Japon"
+    geo_level: country
+    iso_alpha2: "JP"
+    iso_alpha3: "JPN"
+    synonyms:
+      - "japan"
+      - "japon"
+      - "jp"
+      - "jpn"
+
+  FR:
+    canonical_name_en: "France"
+    canonical_name_fr: "France"
+    geo_level: country
+    iso_alpha2: "FR"
+    iso_alpha3: "FRA"
+    synonyms:
+      - "france"
+      - "fr"
+      - "fra"
+
+  DE:
+    canonical_name_en: "Germany"
+    canonical_name_fr: "Allemagne"
+    geo_level: country
+    iso_alpha2: "DE"
+    iso_alpha3: "DEU"
+    synonyms:
+      - "germany"
+      - "allemagne"
+      - "de"
+      - "deu"
+
+  IT:
+    canonical_name_en: "Italy"
+    canonical_name_fr: "Italie"
+    geo_level: country
+    iso_alpha2: "IT"
+    iso_alpha3: "ITA"
+    synonyms:
+      - "italy"
+      - "italie"
+      - "it"
+      - "ita"

@@ -1,0 +1,330 @@
+# attribute_dictionary.yaml
+# Normalization mapping: raw GoC dimensional attributes -> canonical attribute values
+# These capture cross-cutting dimensions that can apply to many metrics.
+# Sources: StatCan (LFS, Census, CANSIM), Finance Canada, TBS-SCT
+# Maintained by: trace-ca normalization service
+
+attributes:
+
+  # ---------------------------------------------------------------------------
+  # GENDER
+  # ---------------------------------------------------------------------------
+  gender:
+    canonical_name_en: "Gender"
+    canonical_name_fr: "Genre"
+    values:
+
+      total:
+        canonical_name_en: "Both sexes"
+        canonical_name_fr: "Les deux sexes"
+        synonyms:
+          - "both sexes"
+          - "les deux sexes"
+          - "total"
+          - "total, all persons"
+          - "ensemble"
+
+      men:
+        canonical_name_en: "Men"
+        canonical_name_fr: "Hommes"
+        synonyms:
+          - "men"
+          - "hommes"
+          - "males"
+          - "male"
+          - "men+"
+          - "hommes+"
+          - "men (15 years and over)"
+
+      women:
+        canonical_name_en: "Women"
+        canonical_name_fr: "Femmes"
+        synonyms:
+          - "women"
+          - "femmes"
+          - "females"
+          - "female"
+          - "women+"
+          - "femmes+"
+          - "women (15 years and over)"
+
+  # ---------------------------------------------------------------------------
+  # AGE GROUP
+  # StatCan Labour Force Survey standard age groupings
+  # ---------------------------------------------------------------------------
+  age_group:
+    canonical_name_en: "Age Group"
+    canonical_name_fr: "Groupe d'âge"
+    values:
+
+      15_plus:
+        canonical_name_en: "15 years and over"
+        canonical_name_fr: "15 ans et plus"
+        synonyms:
+          - "15 years and over"
+          - "15 ans et plus"
+          - "total, 15 years and over"
+          - "15+"
+
+      15_24:
+        canonical_name_en: "15 to 24 years"
+        canonical_name_fr: "15 à 24 ans"
+        synonyms:
+          - "15 to 24 years"
+          - "15 à 24 ans"
+          - "15-24"
+          - "youth"
+          - "jeunes"
+
+      25_54:
+        canonical_name_en: "25 to 54 years"
+        canonical_name_fr: "25 à 54 ans"
+        synonyms:
+          - "25 to 54 years"
+          - "25 à 54 ans"
+          - "25-54"
+          - "core working age"
+          - "âge actif principal"
+
+      55_64:
+        canonical_name_en: "55 to 64 years"
+        canonical_name_fr: "55 à 64 ans"
+        synonyms:
+          - "55 to 64 years"
+          - "55 à 64 ans"
+          - "55-64"
+
+      55_plus:
+        canonical_name_en: "55 years and over"
+        canonical_name_fr: "55 ans et plus"
+        synonyms:
+          - "55 years and over"
+          - "55 ans et plus"
+          - "55+"
+
+      65_plus:
+        canonical_name_en: "65 years and over"
+        canonical_name_fr: "65 ans et plus"
+        synonyms:
+          - "65 years and over"
+          - "65 ans et plus"
+          - "65+"
+
+      15_19:
+        canonical_name_en: "15 to 19 years"
+        canonical_name_fr: "15 à 19 ans"
+        synonyms:
+          - "15 to 19 years"
+          - "15 à 19 ans"
+          - "15-19"
+
+      20_24:
+        canonical_name_en: "20 to 24 years"
+        canonical_name_fr: "20 à 24 ans"
+        synonyms:
+          - "20 to 24 years"
+          - "20 à 24 ans"
+          - "20-24"
+
+      25_34:
+        canonical_name_en: "25 to 34 years"
+        canonical_name_fr: "25 à 34 ans"
+        synonyms:
+          - "25 to 34 years"
+          - "25 à 34 ans"
+          - "25-34"
+
+      35_44:
+        canonical_name_en: "35 to 44 years"
+        canonical_name_fr: "35 à 44 ans"
+        synonyms:
+          - "35 to 44 years"
+          - "35 à 44 ans"
+          - "35-44"
+
+      45_54:
+        canonical_name_en: "45 to 54 years"
+        canonical_name_fr: "45 à 54 ans"
+        synonyms:
+          - "45 to 54 years"
+          - "45 à 54 ans"
+          - "45-54"
+
+  # ---------------------------------------------------------------------------
+  # SECTOR
+  # ---------------------------------------------------------------------------
+  sector:
+    canonical_name_en: "Sector"
+    canonical_name_fr: "Secteur"
+    values:
+
+      total:
+        canonical_name_en: "Total, all industries"
+        canonical_name_fr: "Total, toutes les industries"
+        synonyms:
+          - "total, all industries"
+          - "total, toutes les industries"
+          - "all industries"
+          - "toutes les industries"
+          - "total"
+
+      goods:
+        canonical_name_en: "Goods-producing sector"
+        canonical_name_fr: "Secteur de la production de biens"
+        synonyms:
+          - "goods-producing sector"
+          - "secteur de la production de biens"
+          - "goods"
+          - "biens"
+          - "goods producing"
+
+      services:
+        canonical_name_en: "Services-producing sector"
+        canonical_name_fr: "Secteur des services"
+        synonyms:
+          - "services-producing sector"
+          - "secteur des services"
+          - "services"
+          - "services producing"
+
+      public_sector:
+        canonical_name_en: "Public sector"
+        canonical_name_fr: "Secteur public"
+        synonyms:
+          - "public sector"
+          - "secteur public"
+          - "public administration"
+          - "administration publique"
+
+      private_sector:
+        canonical_name_en: "Private sector"
+        canonical_name_fr: "Secteur privé"
+        synonyms:
+          - "private sector"
+          - "secteur privé"
+
+  # ---------------------------------------------------------------------------
+  # WORKER CLASS
+  # ---------------------------------------------------------------------------
+  worker_class:
+    canonical_name_en: "Class of Worker"
+    canonical_name_fr: "Catégorie de travailleur"
+    values:
+
+      total:
+        canonical_name_en: "Total, all classes"
+        canonical_name_fr: "Total, toutes les catégories"
+        synonyms:
+          - "total, all classes"
+          - "total, toutes les catégories"
+          - "total employees and self-employed"
+
+      employee:
+        canonical_name_en: "Employee"
+        canonical_name_fr: "Employé"
+        synonyms:
+          - "employee"
+          - "employé"
+          - "employees"
+          - "employés"
+          - "paid worker"
+          - "travailleur rémunéré"
+
+      self_employed:
+        canonical_name_en: "Self-employed"
+        canonical_name_fr: "Travailleur autonome"
+        synonyms:
+          - "self-employed"
+          - "travailleur autonome"
+          - "self employed"
+          - "travailleurs autonomes"
+
+      self_employed_incorporated:
+        canonical_name_en: "Self-employed, incorporated"
+        canonical_name_fr: "Travailleur autonome, constitué en société"
+        synonyms:
+          - "self-employed, incorporated"
+          - "travailleur autonome, constitué en société"
+          - "incorporated self-employed"
+
+      self_employed_unincorporated:
+        canonical_name_en: "Self-employed, unincorporated"
+        canonical_name_fr: "Travailleur autonome, non constitué en société"
+        synonyms:
+          - "self-employed, unincorporated"
+          - "travailleur autonome, non constitué en société"
+          - "unincorporated self-employed"
+
+      unpaid_family:
+        canonical_name_en: "Unpaid family worker"
+        canonical_name_fr: "Travailleur familial non rémunéré"
+        synonyms:
+          - "unpaid family worker"
+          - "travailleur familial non rémunéré"
+          - "unpaid family workers"
+
+  # ---------------------------------------------------------------------------
+  # EMPLOYMENT TYPE (full-time / part-time)
+  # ---------------------------------------------------------------------------
+  employment_type:
+    canonical_name_en: "Employment Type"
+    canonical_name_fr: "Type d'emploi"
+    values:
+
+      total:
+        canonical_name_en: "Total, all types"
+        canonical_name_fr: "Total, tous les types"
+        synonyms:
+          - "total"
+          - "both full- and part-time"
+
+      full_time:
+        canonical_name_en: "Full-time"
+        canonical_name_fr: "Temps plein"
+        synonyms:
+          - "full-time"
+          - "temps plein"
+          - "full time"
+          - "plein temps"
+
+      part_time:
+        canonical_name_en: "Part-time"
+        canonical_name_fr: "Temps partiel"
+        synonyms:
+          - "part-time"
+          - "temps partiel"
+          - "part time"
+
+  # ---------------------------------------------------------------------------
+  # SEASONAL ADJUSTMENT
+  # ---------------------------------------------------------------------------
+  seasonal_adjustment:
+    canonical_name_en: "Seasonal Adjustment"
+    canonical_name_fr: "Ajustement saisonnier"
+    values:
+
+      seasonally_adjusted:
+        canonical_name_en: "Seasonally adjusted"
+        canonical_name_fr: "Désaisonnalisé"
+        synonyms:
+          - "seasonally adjusted"
+          - "désaisonnalisé"
+          - "seasonally adjusted at annual rates"
+          - "données désaisonnalisées annualisées"
+          - "saar"
+
+      unadjusted:
+        canonical_name_en: "Unadjusted"
+        canonical_name_fr: "Non désaisonnalisé"
+        synonyms:
+          - "unadjusted"
+          - "non désaisonnalisé"
+          - "not seasonally adjusted"
+          - "non désaisonnalisées"
+
+      trend_cycle:
+        canonical_name_en: "Trend-cycle"
+        canonical_name_fr: "Tendance-cycle"
+        synonyms:
+          - "trend-cycle"
+          - "tendance-cycle"

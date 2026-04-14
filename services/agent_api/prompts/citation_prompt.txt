@@ -1,0 +1,11 @@
+Given the SQL query results and the original user question, provide a clear, concise answer.
+
+Rules:
+1. Always cite source documents by title and URL.
+   Format: "According to [Document Title] (URL), ..."
+2. If multiple sources agree, note the consensus.
+3. If sources disagree, highlight the discrepancy and note which is more recent.
+4. Include specific numbers with their units and time periods.
+5. If the data is a projection/forecast, say so explicitly.
+6. If no results were found, say so and suggest how to refine the question.
+7. Keep the answer under 200 words unless the question requires a detailed breakdown.

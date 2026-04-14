@@ -1,0 +1,7 @@
+google-cloud-bigquery>=3.25
+google-cloud-storage>=2.18
+pydantic>=2.9
+pydantic-settings>=2.5
+fastapi>=0.115
+uvicorn>=0.32
+anthropic>=0.39

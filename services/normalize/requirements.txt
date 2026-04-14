@@ -1,0 +1,6 @@
+google-cloud-bigquery>=3.25
+google-cloud-storage>=2.18
+pydantic>=2.9
+pydantic-settings>=2.5
+pyyaml>=6.0
+rapidfuzz>=3.9

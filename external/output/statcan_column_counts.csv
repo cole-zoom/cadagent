@@ -1,0 +1,456 @@
+column_name,file_count,department
+@OBS_VALUE,3148,statcan
+@TIME_PERIOD,3148,statcan
+@NB_DECIMAL,3116,statcan
+@SCALAR_FACTOR,3116,statcan
+@UOM,3116,statcan
+@VECTOR_ID,3116,statcan
+Obs,3116,statcan
+@Geography,3092,statcan
+@DGUID,3035,statcan
+@id,2088,statcan
+@urn,1624,statcan
+@STATUS_CAN,1367,statcan
+Ref,1141,statcan
+Name,928,statcan
+ConceptIdentity,696,statcan
+@SECURITY_LEVEL,690,statcan
+@Gender,678,statcan
+@Age_group,488,statcan
+@agencyID,464,statcan
+@lang,464,statcan
+@version,464,statcan
+LocalRepresentation,464,statcan
+@TERMINATED,462,statcan
+@North_American_Industry_Classification_System__NAICS_,450,statcan
+@Statistics,414,statcan
+@Labour_force_characteristics,317,statcan
+Annotations,288,statcan
+Code,234,statcan
+@assignmentStatus,232,statcan
+@class,232,statcan
+@package,232,statcan
+@position,232,statcan
+AnnotationText,232,statcan
+AnnotationTitle,232,statcan
+AnnotationType,232,statcan
+AttributeRelationship,232,statcan
+Dimension,232,statcan
+Enumeration,232,statcan
+PrimaryMeasure,232,statcan
+TextFormat,232,statcan
+@Airports,230,statcan
+@maintainableParentID,220,statcan
+@maintainableParentVersion,220,statcan
+@Characteristics,219,statcan
+Parent,211,statcan
+COORDINATE,202,statcan
+DECIMALS,202,statcan
+DGUID,202,statcan
+GEO,202,statcan
+REF_DATE,202,statcan
+SCALAR_FACTOR,202,statcan
+SCALAR_ID,202,statcan
+STATUS,202,statcan
+SYMBOL,202,statcan
+TERMINATED,202,statcan
+UOM,202,statcan
+UOM_ID,202,statcan
+VALUE,202,statcan
+VECTOR,202,statcan
+@Type_of_currency,176,statcan
+Annotation,160,statcan
+@Rates,149,statcan
+@Seasonal_adjustment,148,statcan
+@Government_of_Canada_direct_securities_and_loans,147,statcan
+@Estimate,125,statcan
+@Variable,116,statcan
+@National_Occupational_Classification__NOC_,113,statcan
+@Data_type,109,statcan
+@Financial_market_statistics,101,statcan
+@Sector,101,statcan
+@Trade,94,statcan
+@Commodity,86,statcan
+@Type_of_grain,83,statcan
+@Industry,82,statcan
+@Tobacco_products,82,statcan
+@Class_of_worker,81,statcan
+@Service_detail,81,statcan
+@Production__sales_and_inventories_activities,80,statcan
+@North_American_Product_Classification_System__NAPCS_,69,statcan
+@Cost_of_living_adjustment__COLA_,68,statcan
+@Income__consumption_and_savings,67,statcan
+@Class_of_operation,64,statcan
+@Domestic_and_international_itinerant_movements,64,statcan
+@Type_of_work,64,statcan
+@Prices,60,statcan
+@Type_of_reserve,58,statcan
+@Actual_hours_worked,48,statcan
+@Job,48,statcan
+@Type_of_operation,48,statcan
+@Usual_hours_worked,48,statcan
+@Estimates,47,statcan
+@Type_of_employee,43,statcan
+@Wealth,40,statcan
+@Net_worth_indicators__wealth_,38,statcan
+@Socio-demographic_characteristics,36,statcan
+@Educational_attainment,33,statcan
+@Immigrant_status,33,statcan
+@Price_index,33,statcan
+@Employment_characteristics,32,statcan
+@Job_permanency,32,statcan
+@Job_tenure,32,statcan
+@Population_centre_and_rural_areas,32,statcan
+@Products,32,statcan
+@Reason,32,statcan
+@Students,32,statcan
+@Sub-sector,32,statcan
+@Union_coverage,32,statcan
+@Weekly_wages,32,statcan
+@North_American_Product_Classification_System__NAPCS__Canada_2022_Version,31,statcan
+@Seasonal_adjustment_,29,statcan
+@Service_categories,29,statcan
+@Trade_partners,29,statcan
+Statistics,28,statcan
+@Activity,27,statcan
+@Indicators,26,statcan
+@Sex,25,statcan
+North American Industry Classification System (NAICS),25,statcan
+@Civil_and_military_movements,24,statcan
+@Geography__place_of_occurrence,24,statcan
+@Maximum_take-off_weight,24,statcan
+@Type_of_power_plant,24,statcan
+@Units_of_measure,24,statcan
+Gender,22,statcan
+@Income_quintile,21,statcan
+@Basis,20,statcan
+@Assets_and_liabilities,19,statcan
+@Supply_and_disposition,19,statcan
+@Vehicle_licence_plate,19,statcan
+@Industries,18,statcan
+Age group,18,statcan
+@Duration_of_unemployment,17,statcan
+@Unit_of_measure,17,statcan
+@Age,16,statcan
+@All_jobs,16,statcan
+@Country_of_birth,16,statcan
+@Educational_degree,16,statcan
+@Establishment_size,16,statcan
+@Hours_and_wages,16,statcan
+@Hours_lost,16,statcan
+@Hours_worked,16,statcan
+@Indigenous_group,16,statcan
+@Main_job,16,statcan
+@Population_group,16,statcan
+@Prior_activity,16,statcan
+@Rate,16,statcan
+@Reason_for_part-time_work,16,statcan
+@Reason_of_absence,16,statcan
+@Supplementary_unemployment_rates,16,statcan
+@SYMBOL,16,statcan
+@Type_of_work_sought_and_search_method,16,statcan
+@Wages,16,statcan
+Trade,16,statcan
+@Quintile,15,statcan
+DataSet,15,statcan
+Header,15,statcan
+Seasonal adjustment,15,statcan
+Characteristics,14,statcan
+North American Product Classification System (NAPCS),14,statcan
+Variable,14,statcan
+@Principal_trading_partner__Exports_by_country_of_destination,13,statcan
+@Screened_traffic,13,statcan
+Labour force characteristics,13,statcan
+@Age_at_time_of_death,12,statcan
+@Cause_of_death__ICD-10__,12,statcan
+@Government_sectors,12,statcan
+@Statement_of_government_operations_and_balance_sheet,12,statcan
+@Variables,12,statcan
+@Asset,11,statcan
+Prices,11,statcan
+@Estimate_type,10,statcan
+@Farm_type,10,statcan
+@Revenue_class,10,statcan
+Estimates,10,statcan
+Sector,10,statcan
+@Canadian_export_concentration,9,statcan
+@Partner_countries,9,statcan
+@Principal_trading_partners,9,statcan
+Airports,9,statcan
+@Index,8,statcan
+@Operational_and_financial_statistics,8,statcan
+@Weighting,8,statcan
+Commodity,8,statcan
+Estimate,8,statcan
+@Central_government_debt,7,statcan
+@Consumption_category,7,statcan
+@Housing_Type,7,statcan
+@Lender_type,7,statcan
+Basis,7,statcan
+@Co-operative_characteristics,6,statcan
+@Dwelling_type,6,statcan
+@Flight_rules_and_runway_88,6,statcan
+@Impact,6,statcan
+@Industry_expenditures,6,statcan
+@Number_of_residential_properties_owned,6,statcan
+@Principal_trading_partner,6,statcan
+@Process,6,statcan
+@Summary_statistics,6,statcan
+@Trading_partner,6,statcan
+Industry,6,statcan
+Products,6,statcan
+Sub-sector,6,statcan
+@Central_government_operations,5,statcan
+@Class_of_electricity_producer,5,statcan
+@Egg_production,5,statcan
+@Electric_power__components,5,statcan
+@Fuel_type,5,statcan
+@Level_of_court,5,statcan
+@Release,5,statcan
+@Supply_and_demand_characteristics,5,statcan
+@Supply_of_processing_plant_products,5,statcan
+@Type_of_electricity_generation,5,statcan
+Data type,5,statcan
+Level of court,5,statcan
+@Case_unit,4,statcan
+@Characteristics_of_residential_mortgage_loan_increases,4,statcan
+@CON_Income__consumption_and_savings,4,statcan
+@Issue_s__identified_over_length_of_case,4,statcan
+@Mortgage_loans_increases,4,statcan
+@Producer_industry,4,statcan
+@Sex_of_property_owner,4,statcan
+@Type_of_case,4,statcan
+Activity,4,statcan
+Asset,4,statcan
+Case unit,4,statcan
+Class title,4,statcan
+"Income, consumption and savings",4,statcan
+Indicators,4,statcan
+Issue(s) identified over length of case,4,statcan
+Level,4,statcan
+Rates,4,statcan
+Supply and disposition,4,statcan
+Type of case,4,statcan
+@Characteristics_of_outstanding_residential_mortgage_loans,3,statcan
+@Classification_by_Broad_Economic_Categories_Rev_5__BEC5_,3,statcan
+@CON_North_American_Industry_Classification_System__NAICS_,3,statcan
+@Economic_indicator,3,statcan
+@Financial_estimates,3,statcan
+@Harmonized_System__HS__Sections,3,statcan
+@Institutional_sector,3,statcan
+@Mode_of_Transport,3,statcan
+@Principal_trading_partner__Imports_by_country_of_export,3,statcan
+@Principal_trading_partner__Imports_by_country_of_origin,3,statcan
+@Residential_mortgage_loans_outstanding,3,statcan
+@Trading_Partners,3,statcan
+@United_States,3,statcan
+Class of worker,3,statcan
+Cost of living adjustment (COLA),3,statcan
+Dwelling type,3,statcan
+Housing Type,3,statcan
+Index,3,statcan
+Number of residential properties owned,3,statcan
+Principal trading partners,3,statcan
+Sex,3,statcan
+Unit of measure,3,statcan
+Weighting,3,statcan
+@Change_characteristic,2,statcan
+@Commodities,2,statcan
+@CON_Cost_of_living_adjustment__COLA_,2,statcan
+@CON_Production__sales_and_inventories_activities,2,statcan
+@Elementary_school_language_and_type_of_program,2,statcan
+@Family_type,2,statcan
+@Free_Trade_Agreement,2,statcan
+@Immigration_characteristics,2,statcan
+@Immigration_status,2,statcan
+@Machinery_and_equipment__domestic_and_imported,2,statcan
+@Number_of_years_since_case_initiation,2,statcan
+@Owner-occupied_property_type,2,statcan
+@Ownership_type,2,statcan
+@Residency_status,2,statcan
+@Sales,2,statcan
+@Season,2,statcan
+@Sectors,2,statcan
+@Sub-population_of_children,2,statcan
+@Sub-sectors,2,statcan
+@Type_of_client,2,statcan
+@Type_of_event,2,statcan
+Change characteristic,2,statcan
+Class definition,2,statcan
+Class of operation,2,statcan
+Code - NOC 2021 V1.0,2,statcan
+Domestic and international itinerant movements,2,statcan
+Element Description English,2,statcan
+Element Type Label English,2,statcan
+Elementary school language and type of program,2,statcan
+Employment characteristics,2,statcan
+Government sectors,2,statcan
+Hierarchical structure,2,statcan
+Immigrant status,2,statcan
+Impact,2,statcan
+Industries,2,statcan
+Job,2,statcan
+Lender type,2,statcan
+"Machinery and equipment, domestic and imported",2,statcan
+National Occupational Classification (NOC),2,statcan
+Net worth indicators (wealth),2,statcan
+North American Product Classification System (NAPCS) Canada 2022 Version,2,statcan
+Number of years since case initiation,2,statcan
+Release,2,statcan
+Season,2,statcan
+Sex of property owner,2,statcan
+Socio-demographic characteristics,2,statcan
+Statement of government operations and balance sheet,2,statcan
+Sub-population of children,2,statcan
+Trading partner,2,statcan
+Type of currency,2,statcan
+Type of employee,2,statcan
+Type of event,2,statcan
+Type of operation,2,statcan
+Type of reserve,2,statcan
+Type of work,2,statcan
+Variables,2,statcan
+Wealth,2,statcan
+Weekly wages,2,statcan
+@Alternative_measures,1,statcan
+@Canadian_Classification_of_Functions_of_Government__CCOFOG_,1,statcan
+@Canadian_Government_Finance_Statistics__CGFS_,1,statcan
+@Coal_types_and_uses,1,statcan
+@Coal_volume,1,statcan
+@Country_of_residence,1,statcan
+@Demographic_adjustment,1,statcan
+@Domains,1,statcan
+@Dwelling_Occupation,1,statcan
+@Effective_date,1,statcan
+@Elapsed_time_and_median_days_from_case_initiation_to_first_disposition,1,statcan
+@Elapsed_time_from_case_initiation_to_first_disposition,1,statcan
+@Housing_estimates,1,statcan
+@Industry_of_purchase,1,statcan
+@Interprovincial_labour_mobility,1,statcan
+@National_Occupational_Classification,1,statcan
+@Number_of_private_dwellings_of_residential_property,1,statcan
+@Official_language_of_daycare_and_reasons_for_attending,1,statcan
+@Overtime,1,statcan
+@Period_of_construction,1,statcan
+@Physical_flow,1,statcan
+@Preference_for_daycare_in_the_minority_official_language,1,statcan
+@Product_category,1,statcan
+@Production_and_disposition,1,statcan
+@Resin,1,statcan
+@Tenure_type,1,statcan
+@Traveller_type,1,statcan
+@Type_of_action,1,statcan
+@Type_of_unit,1,statcan
+Actual hours worked,1,statcan
+Age,1,statcan
+Age at time of death,1,statcan
+All jobs,1,statcan
+Alternative measures,1,statcan
+Assets and liabilities,1,statcan
+Canadian Classification of Functions of Government (CCOFOG),1,statcan
+Canadian export concentration,1,statcan
+Canadian Government Finance Statistics (CGFS),1,statcan
+Cause of death (ICD-10),1,statcan
+Central government debt,1,statcan
+Central government operations,1,statcan
+Characteristics of outstanding residential mortgage loans,1,statcan
+Characteristics of residential mortgage loan increases,1,statcan
+Civil and military movements,1,statcan
+Class of electricity producer,1,statcan
+Classification by Broad Economic Categories Rev 5 (BEC5),1,statcan
+Co-operative characteristics,1,statcan
+Coal types and uses,1,statcan
+Coal volume,1,statcan
+Commodities,1,statcan
+Consumption category,1,statcan
+Country of birth,1,statcan
+Demographic adjustment,1,statcan
+Domains,1,statcan
+Dwelling Occupation,1,statcan
+Economic indicator,1,statcan
+Educational attainment,1,statcan
+Effective date,1,statcan
+Egg production,1,statcan
+Elapsed time and median days from case initiation to first disposition,1,statcan
+Elapsed time from case initiation to first disposition,1,statcan
+"Electric power, components",1,statcan
+Estimate type,1,statcan
+Family type,1,statcan
+Farm type,1,statcan
+Financial estimates,1,statcan
+Financial market statistics,1,statcan
+Flight rules and runway 88,1,statcan
+Fuel type,1,statcan
+Government of Canada direct securities and loans,1,statcan
+Hours and wages,1,statcan
+Hours lost,1,statcan
+Housing estimates,1,statcan
+Immigration characteristics,1,statcan
+Immigration status,1,statcan
+Income quintile,1,statcan
+Indigenous group,1,statcan
+Industry expenditures,1,statcan
+Industry of purchase,1,statcan
+Institutional sector,1,statcan
+Institutional sector,1,statcan
+Interprovincial labour mobility,1,statcan
+Job permanency,1,statcan
+Main job,1,statcan
+Maximum take-off weight,1,statcan
+Mortgage loans increases,1,statcan
+National Occupational Classification,1,statcan
+Number of private dwellings of residential property,1,statcan
+Official language of daycare and reasons for attending,1,statcan
+Operational and financial statistics,1,statcan
+Owner-occupied property type,1,statcan
+Ownership type,1,statcan
+Partner countries,1,statcan
+Period of construction,1,statcan
+Physical flow,1,statcan
+Population centre and rural areas,1,statcan
+Population group,1,statcan
+Preference for daycare in the minority official language,1,statcan
+Price index,1,statcan
+Principal trading partner,1,statcan
+Principal trading partner: Exports by country of destination,1,statcan
+Prior activity,1,statcan
+Process,1,statcan
+Producer industry,1,statcan
+Product category,1,statcan
+Production and disposition,1,statcan
+"Production, sales and inventories activities",1,statcan
+Quintile,1,statcan
+Rate,1,statcan
+Reason,1,statcan
+Reason for part-time work,1,statcan
+Reason of absence,1,statcan
+Residency status,1,statcan
+Residential mortgage loans outstanding,1,statcan
+Resin,1,statcan
+Revenue class,1,statcan
+Sales,1,statcan
+Screened traffic,1,statcan
+Sectors,1,statcan
+Service categories,1,statcan
+Service detail,1,statcan
+Students,1,statcan
+Sub-sectors,1,statcan
+Summary statistics,1,statcan
+Supplementary unemployment rates,1,statcan
+Supply and demand characteristics,1,statcan
+Supply of processing plant products,1,statcan
+Tenure type,1,statcan
+Tobacco products,1,statcan
+Tourism share,1,statcan
+Trade partners,1,statcan
+Trading Partners,1,statcan
+Type of action,1,statcan
+Type of client,1,statcan
+Type of electricity generation,1,statcan
+Type of grain,1,statcan
+Type of power plant,1,statcan
+Type of unit,1,statcan
+Union coverage,1,statcan
+Units of measure,1,statcan
+Usual hours worked,1,statcan
+Wages,1,statcan

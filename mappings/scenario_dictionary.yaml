@@ -1,0 +1,99 @@
+# scenario_dictionary.yaml
+# Normalization mapping: raw GoC scenario/projection labels -> canonical scenario entities
+# Sources: Finance Canada (Budget, EFU, FES), PBO, Bank of Canada
+# Maintained by: trace-ca normalization service
+
+scenarios:
+
+  actual:
+    canonical_name_en: "Actual"
+    canonical_name_fr: "Réel"
+    description_en: "Observed historical data"
+    description_fr: "Données historiques observées"
+    synonyms:
+      - "actual"
+      - "réel"
+      - "actuals"
+      - "réels"
+      - "historical"
+      - "historique"
+      - "observed"
+      - "observé"
+      - "outturn"
+      - "résultat"
+
+  projection:
+    canonical_name_en: "Projection"
+    canonical_name_fr: "Projection"
+    description_en: "Central or baseline forecast"
+    description_fr: "Prévision centrale ou de référence"
+    synonyms:
+      - "projection"
+      - "projected"
+      - "projeté"
+      - "forecast"
+      - "prévision"
+      - "prévisions"
+      - "estimate"
+      - "estimation"
+      - "plan"
+      - "planned"
+      - "planifié"
+
+  baseline:
+    canonical_name_en: "Baseline"
+    canonical_name_fr: "Scénario de référence"
+    description_en: "Reference-case scenario used for comparison"
+    description_fr: "Scénario de référence utilisé pour la comparaison"
+    synonyms:
+      - "baseline"
+      - "scénario de référence"
+      - "reference case"
+      - "cas de référence"
+      - "base case"
+      - "status quo"
+
+  high:
+    canonical_name_en: "High Scenario"
+    canonical_name_fr: "Scénario optimiste"
+    description_en: "Upside or optimistic alternative scenario"
+    description_fr: "Scénario alternatif optimiste"
+    synonyms:
+      - "high"
+      - "optimiste"
+      - "high scenario"
+      - "scénario optimiste"
+      - "upside"
+      - "scénario favorable"
+      - "upper bound"
+      - "borne supérieure"
+
+  low:
+    canonical_name_en: "Low Scenario"
+    canonical_name_fr: "Scénario pessimiste"
+    description_en: "Downside or pessimistic alternative scenario"
+    description_fr: "Scénario alternatif pessimiste"
+    synonyms:
+      - "low"
+      - "pessimiste"
+      - "low scenario"
+      - "scénario pessimiste"
+      - "downside"
+      - "scénario défavorable"
+      - "lower bound"
+      - "borne inférieure"
+
+  ongoing:
+    canonical_name_en: "Ongoing"
+    canonical_name_fr: "En cours"
+    description_en: "Continuing or recurring measure with no end date"
+    description_fr: "Mesure continue ou récurrente sans date de fin"
+    synonyms:
+      - "ongoing"
+      - "en cours"
+      - "continuing"
+      - "continu"
+      - "permanent"
+      - "permanent"
+      - "recurring"
+      - "récurrent"

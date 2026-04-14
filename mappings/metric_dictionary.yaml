@@ -1,0 +1,620 @@
+# metric_dictionary.yaml
+# Normalization mapping: raw GoC data headers -> canonical metric entities
+# Sources: Finance Canada (Budget/EFU/FES), StatCan (LFS, CANSIM), TBS-SCT (InfoBase)
+# Maintained by: trace-ca normalization service
+
+metrics:
+
+  # ---------------------------------------------------------------------------
+  # MACROECONOMIC  --  GDP & Output
+  # ---------------------------------------------------------------------------
+  gdp_real_growth:
+    canonical_name_en: "Real GDP Growth"
+    canonical_name_fr: "Croissance du PIB réel"
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "real gdp growth"
+      - "croissance du pib réel"
+      - "real gross domestic product growth"
+      - "gdp growth (real)"
+
+  gdp_nominal:
+    canonical_name_en: "Nominal GDP"
+    canonical_name_fr: "PIB nominal"
+    metric_family: macroeconomic
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "nominal gdp"
+      - "pib nominal"
+      - "nominal gross domestic product"
+      - "gdp (nominal)"
+
+  gdp_nominal_growth:
+    canonical_name_en: "Nominal GDP Growth"
+    canonical_name_fr: "Croissance du PIB nominal"
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "nominal gdp growth"
+      - "croissance du pib nominal"
+
+  gdp_real_level:
+    canonical_name_en: "Real GDP"
+    canonical_name_fr: "PIB réel"
+    metric_family: macroeconomic
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "real gdp"
+      - "pib réel"
+      - "real gross domestic product"
+
+  gdp_deflator:
+    canonical_name_en: "GDP Inflation"
+    canonical_name_fr: "Inflation du PIB"
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "gdp inflation"
+      - "inflation du pib"
+      - "gdp deflator"
+      - "déflateur du pib"
+      - "gdp price index"
+
+  output_gap:
+    canonical_name_en: "Output Gap"
+    canonical_name_fr: "Écart de production"
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "output gap"
+      - "écart de production"
+
+  us_gdp_real_growth:
+    canonical_name_en: "US Real GDP Growth"
+    canonical_name_fr: "Croissance du PIB réel des É.-U."
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "us real gdp growth"
+      - "croissance du pib réel des é.-u."
+      - "u.s. real gdp growth"
+      - "united states real gdp growth"
+
+  # ---------------------------------------------------------------------------
+  # MACROECONOMIC  --  Inflation & Prices
+  # ---------------------------------------------------------------------------
+  cpi_inflation:
+    canonical_name_en: "CPI Inflation"
+    canonical_name_fr: "Inflation selon l'IPC"
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "cpi inflation"
+      - "inflation selon l'ipc"
+      - "consumer price index inflation"
+      - "inflation (cpi)"
+      - "inflation ipc"
+
+  core_inflation:
+    canonical_name_en: "Core Inflation"
+    canonical_name_fr: "Inflation fondamentale"
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "core inflation"
+      - "inflation fondamentale"
+      - "underlying inflation"
+
+  core_inflation_cpix:
+    canonical_name_en: "Core Inflation (CPIX)"
+    canonical_name_fr: "Inflation fondamentale (IPCX)"
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "core inflation (cpix)"
+      - "inflation fondamentale (ipcx)"
+      - "cpix"
+      - "ipcx"
+
+  us_cpi_inflation:
+    canonical_name_en: "US CPI Inflation"
+    canonical_name_fr: "Inflation selon l'IPC des É.-U."
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "us cpi inflation"
+      - "inflation selon l'ipc des é.-u."
+      - "u.s. cpi inflation"
+
+  us_gdp_inflation:
+    canonical_name_en: "US GDP Inflation"
+    canonical_name_fr: "Inflation du PIB des É.-U."
+    metric_family: macroeconomic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "us gdp inflation"
+      - "inflation du pib des é.-u."
+      - "u.s. gdp inflation"
+
+  # ---------------------------------------------------------------------------
+  # LABOUR
+  # ---------------------------------------------------------------------------
+  unemployment_rate:
+    canonical_name_en: "Unemployment Rate"
+    canonical_name_fr: "Taux de chômage"
+    metric_family: labour
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "unemployment rate"
+      - "taux de chômage"
+      - "unemp. rate"
+      - "unemp rate"
+
+  employment_growth:
+    canonical_name_en: "Employment Growth"
+    canonical_name_fr: "Croissance de l'emploi"
+    metric_family: labour
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "employment growth"
+      - "croissance de l'emploi"
+      - "emp. growth"
+      - "emp growth"
+
+  employment:
+    canonical_name_en: "Employment"
+    canonical_name_fr: "Emploi"
+    metric_family: labour
+    default_unit: thousands
+    is_additive: true
+    synonyms:
+      - "employment"
+      - "emploi"
+      - "number employed"
+
+  labour_force:
+    canonical_name_en: "Labour Force"
+    canonical_name_fr: "Population active"
+    metric_family: labour
+    default_unit: thousands
+    is_additive: true
+    synonyms:
+      - "labour force"
+      - "population active"
+      - "labor force"
+      - "labour force characteristics"
+
+  participation_rate:
+    canonical_name_en: "Participation Rate"
+    canonical_name_fr: "Taux d'activité"
+    metric_family: labour
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "participation rate"
+      - "taux d'activité"
+      - "labour force participation rate"
+
+  population:
+    canonical_name_en: "Population"
+    canonical_name_fr: "Population"
+    metric_family: labour
+    default_unit: thousands
+    is_additive: true
+    synonyms:
+      - "population"
+      - "total population"
+      - "population totale"
+
+  hours_worked:
+    canonical_name_en: "Average Hours Worked"
+    canonical_name_fr: "Heures moyennes travaillées"
+    metric_family: labour
+    default_unit: hours
+    is_additive: false
+    synonyms:
+      - "average hours worked"
+      - "heures moyennes travaillées"
+      - "hours worked"
+      - "actual hours worked"
+
+  hourly_earnings:
+    canonical_name_en: "Average Hourly Earnings"
+    canonical_name_fr: "Rémunération horaire moyenne"
+    metric_family: labour
+    default_unit: cad
+    is_additive: false
+    synonyms:
+      - "average hourly earnings"
+      - "rémunération horaire moyenne"
+      - "hourly wage rate"
+
+  # ---------------------------------------------------------------------------
+  # MONETARY
+  # ---------------------------------------------------------------------------
+  interest_rate_3m:
+    canonical_name_en: "3-Month Treasury Bill Rate"
+    canonical_name_fr: "Taux des bons du Trésor à 3 mois"
+    metric_family: monetary
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "3-month treasury bill rate"
+      - "taux des bons du trésor à 3 mois"
+      - "3-month t-bill"
+      - "treasury bill rate"
+
+  interest_rate_10y:
+    canonical_name_en: "10-Year Government Bond Rate"
+    canonical_name_fr: "Taux des obligations d'État à 10 ans"
+    metric_family: monetary
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "10-year government bond rate"
+      - "taux des obligations d'état à 10 ans"
+      - "10-year bond yield"
+      - "government of canada 10-year benchmark bond yield"
+
+  exchange_rate_usdcad:
+    canonical_name_en: "Exchange Rate (USD/CAD)"
+    canonical_name_fr: "Taux de change (USD/CAD)"
+    metric_family: monetary
+    default_unit: cents_usd
+    is_additive: false
+    synonyms:
+      - "exchange rate (usd/cad)"
+      - "taux de change (usd/cad)"
+      - "canada/u.s. exchange rate"
+      - "us exchange rate"
+
+  policy_rate:
+    canonical_name_en: "Policy Interest Rate"
+    canonical_name_fr: "Taux directeur"
+    metric_family: monetary
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "policy interest rate"
+      - "taux directeur"
+      - "overnight rate"
+      - "bank of canada policy rate"
+
+  # ---------------------------------------------------------------------------
+  # TRADE
+  # ---------------------------------------------------------------------------
+  exports:
+    canonical_name_en: "Exports of Goods and Services"
+    canonical_name_fr: "Exportations de biens et services"
+    metric_family: trade
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "exports of goods and services"
+      - "exportations de biens et services"
+      - "exports"
+      - "exportations"
+
+  imports:
+    canonical_name_en: "Imports of Goods and Services"
+    canonical_name_fr: "Importations de biens et services"
+    metric_family: trade
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "imports of goods and services"
+      - "importations de biens et services"
+      - "imports"
+      - "importations"
+
+  trade_balance:
+    canonical_name_en: "Trade Balance"
+    canonical_name_fr: "Balance commerciale"
+    metric_family: trade
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "trade balance"
+      - "balance commerciale"
+      - "net exports"
+      - "exportations nettes"
+
+  current_account_balance:
+    canonical_name_en: "Current Account Balance"
+    canonical_name_fr: "Solde du compte courant"
+    metric_family: trade
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "current account balance"
+      - "solde du compte courant"
+
+  wti_crude_oil:
+    canonical_name_en: "Crude Oil Price (WTI)"
+    canonical_name_fr: "Prix du pétrole brut (WTI)"
+    metric_family: trade
+    default_unit: usd_per_barrel
+    is_additive: false
+    synonyms:
+      - "crude oil price (wti)"
+      - "prix du pétrole brut (wti)"
+      - "west texas intermediate"
+      - "wti"
+      - "crude oil"
+
+  # ---------------------------------------------------------------------------
+  # FISCAL  --  Revenue
+  # ---------------------------------------------------------------------------
+  total:
+    canonical_name_en: "Total"
+    canonical_name_fr: "Total"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "total"
+
+  budgetary_revenues:
+    canonical_name_en: "Budgetary Revenues"
+    canonical_name_fr: "Revenus budgétaires"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "budgetary revenues"
+      - "revenus budgétaires"
+      - "revenues"
+      - "revenus"
+
+  personal_income_tax:
+    canonical_name_en: "Personal Income Tax"
+    canonical_name_fr: "Impôt sur le revenu des particuliers"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "personal income tax"
+      - "impôt sur le revenu des particuliers"
+      - "personal income tax revenues"
+
+  corporate_income_tax:
+    canonical_name_en: "Corporate Income Tax"
+    canonical_name_fr: "Impôt sur le revenu des sociétés"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "corporate income tax"
+      - "impôt sur le revenu des sociétés"
+      - "corporate income tax revenues"
+
+  gst_revenues:
+    canonical_name_en: "GST Revenues"
+    canonical_name_fr: "Revenus de la TPS"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "gst revenues"
+      - "revenus de la tps"
+      - "goods and services tax"
+      - "taxe sur les produits et services"
+
+  ei_premium_revenues:
+    canonical_name_en: "EI Premium Revenues"
+    canonical_name_fr: "Revenus des cotisations d'AE"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "ei premium revenues"
+      - "revenus des cotisations d'ae"
+      - "employment insurance premium revenues"
+
+  # ---------------------------------------------------------------------------
+  # FISCAL  --  Expenditure
+  # ---------------------------------------------------------------------------
+  program_expenses:
+    canonical_name_en: "Program Expenses"
+    canonical_name_fr: "Charges de programmes"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "program expenses"
+      - "charges de programmes"
+      - "program spending"
+      - "expenses"
+
+  public_debt_charges:
+    canonical_name_en: "Public Debt Charges"
+    canonical_name_fr: "Frais de la dette publique"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "public debt charges"
+      - "frais de la dette publique"
+      - "interest on debt"
+
+  total_expenses:
+    canonical_name_en: "Total Expenses"
+    canonical_name_fr: "Total des charges"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "total expenses"
+      - "total des charges"
+      - "total spending"
+
+  # ---------------------------------------------------------------------------
+  # FISCAL  --  Balance & Debt
+  # ---------------------------------------------------------------------------
+  budgetary_balance:
+    canonical_name_en: "Budgetary Balance"
+    canonical_name_fr: "Solde budgétaire"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "budgetary balance"
+      - "solde budgétaire"
+      - "budget balance"
+      - "surplus/deficit"
+
+  federal_debt:
+    canonical_name_en: "Federal Debt"
+    canonical_name_fr: "Dette fédérale"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "federal debt"
+      - "dette fédérale"
+      - "accumulated deficit"
+      - "déficit accumulé"
+
+  debt_to_gdp:
+    canonical_name_en: "Federal Debt-to-GDP Ratio"
+    canonical_name_fr: "Ratio de la dette fédérale au PIB"
+    metric_family: fiscal
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "federal debt-to-gdp ratio"
+      - "ratio de la dette fédérale au pib"
+      - "debt-to-gdp"
+      - "debt to gdp ratio"
+
+  net_debt:
+    canonical_name_en: "Net Debt"
+    canonical_name_fr: "Dette nette"
+    metric_family: fiscal
+    default_unit: billions_cad
+    is_additive: true
+    synonyms:
+      - "net debt"
+      - "dette nette"
+
+  # ---------------------------------------------------------------------------
+  # EXPENDITURE  --  TBS-SCT / InfoBase
+  # ---------------------------------------------------------------------------
+  expenditure:
+    canonical_name_en: "Expenditure"
+    canonical_name_fr: "Dépenses"
+    metric_family: expenditure
+    default_unit: cad
+    is_additive: true
+    synonyms:
+      - "expenditure"
+      - "dépenses"
+      - "amount"
+      - "montant"
+
+  budgetary_authority:
+    canonical_name_en: "Budgetary Authorities"
+    canonical_name_fr: "Autorisations budgétaires"
+    metric_family: expenditure
+    default_unit: cad
+    is_additive: true
+    synonyms:
+      - "budgetary"
+      - "budgétaire"
+      - "budgetary authorities"
+      - "autorisations budgétaires"
+
+  authorities_to_date:
+    canonical_name_en: "Authorities To Date"
+    canonical_name_fr: "Autorisations à ce jour"
+    metric_family: expenditure
+    default_unit: cad
+    is_additive: true
+    synonyms:
+      - "authorities to date"
+      - "autorisations à ce jour"
+
+  statutory_expenditure:
+    canonical_name_en: "Statutory Expenditure"
+    canonical_name_fr: "Dépenses législatives"
+    metric_family: expenditure
+    default_unit: cad
+    is_additive: true
+    synonyms:
+      - "statutory expenditure"
+      - "dépenses législatives"
+      - "statutory"
+      - "législatif"
+
+  voted_expenditure:
+    canonical_name_en: "Voted Expenditure"
+    canonical_name_fr: "Dépenses votées"
+    metric_family: expenditure
+    default_unit: cad
+    is_additive: true
+    synonyms:
+      - "voted expenditure"
+      - "dépenses votées"
+      - "voted"
+      - "voté"
+
+  transfer_payments:
+    canonical_name_en: "Transfer Payments"
+    canonical_name_fr: "Paiements de transfert"
+    metric_family: expenditure
+    default_unit: cad
+    is_additive: true
+    synonyms:
+      - "transfer payments"
+      - "paiements de transfert"
+      - "transfers"
+
+  # ---------------------------------------------------------------------------
+  # SURVEY
+  # ---------------------------------------------------------------------------
+  consumer_confidence:
+    canonical_name_en: "Consumer Confidence Index"
+    canonical_name_fr: "Indice de confiance des consommateurs"
+    metric_family: survey
+    default_unit: index
+    is_additive: false
+    synonyms:
+      - "consumer confidence index"
+      - "indice de confiance des consommateurs"
+      - "consumer confidence"
+
+  business_confidence:
+    canonical_name_en: "Business Confidence Index"
+    canonical_name_fr: "Indice de confiance des entreprises"
+    metric_family: survey
+    default_unit: index
+    is_additive: false
+    synonyms:
+      - "business confidence index"
+      - "indice de confiance des entreprises"
+      - "business outlook"
+
+  housing_starts:
+    canonical_name_en: "Housing Starts"
+    canonical_name_fr: "Mises en chantier"
+    metric_family: survey
+    default_unit: thousands
+    is_additive: true
+    synonyms:
+      - "housing starts"
+      - "mises en chantier"
