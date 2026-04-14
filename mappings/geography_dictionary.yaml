@@ -98,7 +98,7 @@ geographies:
       - "mb"
       - "man."
 
-  ON:
+  "ON":
     canonical_name_en: "Ontario"
     canonical_name_fr: "Ontario"
     geo_level: province

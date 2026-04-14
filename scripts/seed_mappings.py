@@ -23,8 +23,9 @@ from shared.config.settings import settings
 MAPPINGS_DIR = Path(__file__).resolve().parent.parent / "mappings"
 
 
-def _make_id(prefix: str, value: str) -> str:
-    return hashlib.sha256(f"{prefix}|{value.lower().strip()}".encode()).hexdigest()[:24]
+def _make_id(prefix: str, value: str | bool) -> str:
+    value = str(value).lower().strip()
+    return hashlib.sha256(f"{prefix}|{value}".encode()).hexdigest()[:24]
 
 
 def seed_departments(bq: BigQueryClient, dataset: str) -> None:
@@ -53,17 +54,19 @@ def seed_geography(bq: BigQueryClient, dataset: str) -> None:
     now = datetime.now(timezone.utc).isoformat()
     rows = []
 
-    for section_data in data.values():
-        if isinstance(section_data, dict):
-            for key, val in section_data.items():
-                rows.append({
-                    "geography_id": _make_id("geo", key),
-                    "geo_type": val.get("geo_type", "unknown"),
-                    "code": val.get("code", key),
-                    "name_en": val.get("name_en", key),
-                    "name_fr": val.get("name_fr", ""),
-                    "created_at": now,
-                })
+    # The YAML has a top-level "geographies" dict keyed by geo code (CA, ON, US, etc.)
+    geos = data.get("geographies", data)
+    for key, val in geos.items():
+        if not isinstance(val, dict):
+            continue
+        rows.append({
+            "geography_id": _make_id("geo", key),
+            "geo_type": val.get("geo_level", val.get("geo_type", "unknown")),
+            "code": val.get("province_code", val.get("iso_alpha2", key)),
+            "name_en": val.get("canonical_name_en", val.get("name_en", key)),
+            "name_fr": val.get("canonical_name_fr", val.get("name_fr", "")),
+            "created_at": now,
+        })
 
     bq.insert_rows(dataset, "dim_geography", rows)
     print(f"Seeded {len(rows)} geographies")
@@ -128,24 +131,42 @@ def seed_attributes(bq: BigQueryClient, dataset: str) -> None:
     type_rows = []
     value_rows = []
 
-    for attr_type_key, info in data.items():
+    attrs = data.get("attributes", data)
+    for attr_type_key, info in attrs.items():
+        if not isinstance(info, dict):
+            continue
         attr_type_id = _make_id("attr_type", attr_type_key)
         type_rows.append({
             "attribute_type_id": attr_type_id,
-            "attribute_type_name": info.get("attribute_type", attr_type_key),
+            "attribute_type_name": info.get("canonical_name_en", info.get("attribute_type", attr_type_key)),
             "description": info.get("description"),
             "created_at": now,
         })
 
-        for val in info.get("values", []):
-            value_rows.append({
-                "attribute_value_id": _make_id("attr_val", f"{attr_type_key}|{val.get('normalized', '')}"),
-                "attribute_type_id": attr_type_id,
-                "value_en": val.get("en", ""),
-                "value_fr": val.get("fr", ""),
-                "normalized_value": val.get("normalized", ""),
-                "created_at": now,
-            })
+        values = info.get("values", {})
+        # values can be a dict (keyed by value name) or a list
+        if isinstance(values, dict):
+            for val_key, val_info in values.items():
+                if not isinstance(val_info, dict):
+                    continue
+                value_rows.append({
+                    "attribute_value_id": _make_id("attr_val", f"{attr_type_key}|{val_key}"),
+                    "attribute_type_id": attr_type_id,
+                    "value_en": val_info.get("canonical_name_en", val_key),
+                    "value_fr": val_info.get("canonical_name_fr", ""),
+                    "normalized_value": val_key,
+                    "created_at": now,
+                })
+        elif isinstance(values, list):
+            for val in values:
+                value_rows.append({
+                    "attribute_value_id": _make_id("attr_val", f"{attr_type_key}|{val.get('normalized', '')}"),
+                    "attribute_type_id": attr_type_id,
+                    "value_en": val.get("en", val.get("canonical_name_en", "")),
+                    "value_fr": val.get("fr", val.get("canonical_name_fr", "")),
+                    "normalized_value": val.get("normalized", ""),
+                    "created_at": now,
+                })
 
     bq.insert_rows(dataset, "dim_attribute_type", type_rows)
     bq.insert_rows(dataset, "dim_attribute_value", value_rows)
