@@ -36,7 +36,7 @@ def normalize_batch(
     # Find tables that have staging data but no fact observations yet
     where = ""
     if department_id:
-        where = f"AND et.department_id = '{department_id}'"
+        where = f"AND d.department_id = '{department_id}'"
 
     sql = f"""
         SELECT DISTINCT
@@ -51,7 +51,6 @@ def normalize_batch(
             ON et.table_id = fo.table_id
         WHERE fo.table_id IS NULL
         {where}
-        LIMIT 1000
     """
 
     tables = bq_client.query(sql)
@@ -64,7 +63,11 @@ def normalize_batch(
         "errors": 0,
     }
 
-    for table_info in tables:
+    for idx, table_info in enumerate(tables, 1):
+        logger.info(
+            "Normalizing table %d/%d: table_id=%s document_id=%s dept=%s",
+            idx, len(tables), table_info["table_id"], table_info["document_id"], table_info["department_id"],
+        )
         try:
             table_stats = _normalize_table(
                 bq_client=bq_client,
@@ -82,8 +85,12 @@ def normalize_batch(
             stats["tables_processed"] += 1
             stats["observations_created"] += table_stats.get("observations", 0)
             stats["headers_classified"] += table_stats.get("headers", 0)
+            logger.info(
+                "Table %d/%d done: %d observations, %d headers classified",
+                idx, len(tables), table_stats.get("observations", 0), table_stats.get("headers", 0),
+            )
         except Exception as e:
-            logger.error("Error normalizing table %s: %s", table_info["table_id"], e)
+            logger.exception("Error normalizing table %s: %s", table_info["table_id"], e)
             stats["errors"] += 1
 
     logger.info("Normalization batch complete: %s", stats)

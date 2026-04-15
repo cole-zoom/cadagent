@@ -57,6 +57,17 @@ def _parse_xlsx(data: bytes, document_id: str) -> list[ExtractedTable]:
             headers = [str(h) if h else "" for h in rows_data[0]]
             data_rows = rows_data[1:]
 
+            # Drop columns with empty headers (merged-cell leftovers, etc.)
+            valid_col_indices = [i for i, h in enumerate(headers) if h and h.strip()]
+            if not valid_col_indices:
+                continue
+            if len(valid_col_indices) < len(headers):
+                headers = [headers[i] for i in valid_col_indices]
+                data_rows = [
+                    [row[i] if i < len(row) else None for i in valid_col_indices]
+                    for row in data_rows
+                ]
+
             # Filter empty rows
             data_rows = [r for r in data_rows if any(c and c.strip() for c in r if c)]
 
@@ -114,6 +125,17 @@ def _parse_xls(data: bytes, document_id: str) -> list[ExtractedTable]:
                 row = [str(ws.cell_value(r, c)) if ws.cell_value(r, c) else None for c in range(ws.ncols)]
                 if any(cell and cell.strip() for cell in row if cell):
                     data_rows.append(row)
+
+            # Drop columns with empty headers
+            valid_col_indices = [i for i, h in enumerate(headers) if h and h.strip()]
+            if not valid_col_indices:
+                continue
+            if len(valid_col_indices) < len(headers):
+                headers = [headers[i] for i in valid_col_indices]
+                data_rows = [
+                    [row[i] if i < len(row) else None for i in valid_col_indices]
+                    for row in data_rows
+                ]
 
             if not data_rows:
                 continue

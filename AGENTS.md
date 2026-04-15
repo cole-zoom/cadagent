@@ -105,3 +105,7 @@ Follow the phased rollout in the pipeline doc (§20):
 3. **Phase 3** — `services/normalize/` + `mappings/` + `sql/curated/` DDL
 4. **Phase 4** — QA tables + review queue
 5. **Phase 5** — `services/agent_api/`
+
+## Improvements log
+
+When you discover a better practice, performance fix, or workaround during development, add it to `docs/improvements/pipeline-optimization.md`. This is the living record of what we learned running the pipelines for real. Always update the improvements doc alongside the code fix so future sessions have context on *why* the code does what it does.

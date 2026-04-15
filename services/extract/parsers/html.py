@@ -53,10 +53,21 @@ def parse_html(
         if not data_rows:
             continue
 
-        # Pad rows
+        # Pad rows first so column indices line up
         max_cols = max(len(headers), max((len(r) for r in data_rows), default=0))
         headers = headers + [""] * (max_cols - len(headers))
         data_rows = [r + [None] * (max_cols - len(r)) for r in data_rows]
+
+        # Drop columns with empty headers
+        valid_col_indices = [i for i, h in enumerate(headers) if h and h.strip()]
+        if not valid_col_indices:
+            continue
+        if len(valid_col_indices) < len(headers):
+            headers = [headers[i] for i in valid_col_indices]
+            data_rows = [
+                [row[i] if i < len(row) else None for i in valid_col_indices]
+                for row in data_rows
+            ]
 
         table_id = hashlib.sha256(
             f"{document_id}|html|{idx}".encode()

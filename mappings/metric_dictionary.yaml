@@ -618,3 +618,72 @@ metrics:
     synonyms:
       - "housing starts"
       - "mises en chantier"
+
+  # ---------------------------------------------------------------------------
+  # CENSUS / DEMOGRAPHIC  —  StatCan census-wide table metrics
+  # ---------------------------------------------------------------------------
+  census_population:
+    canonical_name_en: "Census Population"
+    canonical_name_fr: "Population recensée"
+    metric_family: demographic
+    default_unit: persons
+    is_additive: true
+    synonyms:
+      - "population"
+      - "pop"
+      - "population count"
+      - "total population"
+
+  census_population_density:
+    canonical_name_en: "Population Density"
+    canonical_name_fr: "Densité de population"
+    metric_family: demographic
+    default_unit: per_sq_km
+    is_additive: false
+    synonyms:
+      - "population density per square kilometre"
+      - "population density"
+      - "density"
+
+  census_total_private_dwellings:
+    canonical_name_en: "Total Private Dwellings"
+    canonical_name_fr: "Logements privés totaux"
+    metric_family: demographic
+    default_unit: count
+    is_additive: true
+    synonyms:
+      - "total private dwellings"
+      - "private dwellings"
+      - "dwellings"
+
+  census_occupied_private_dwellings:
+    canonical_name_en: "Private Dwellings Occupied by Usual Residents"
+    canonical_name_fr: "Logements privés occupés par des résidents habituels"
+    metric_family: demographic
+    default_unit: count
+    is_additive: true
+    synonyms:
+      - "private dwellings occupied by usual residents"
+      - "occupied private dwellings"
+
+  census_land_area:
+    canonical_name_en: "Land Area"
+    canonical_name_fr: "Superficie des terres"
+    metric_family: demographic
+    default_unit: sq_km
+    is_additive: true
+    synonyms:
+      - "land area in square kilometres"
+      - "land area"
+      - "area"
+
+  census_population_change:
+    canonical_name_en: "Population Percent Change"
+    canonical_name_fr: "Variation de population en pourcentage"
+    metric_family: demographic
+    default_unit: percent
+    is_additive: false
+    synonyms:
+      - "population, % change"
+      - "population percent change"
+      - "population % change"

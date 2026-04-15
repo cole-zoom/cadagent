@@ -20,6 +20,7 @@ def main() -> None:
 
     config = IngestConfig(
         max_resources=int(os.getenv("MAX_RESOURCES", "0")),
+        max_file_size_mb=int(os.getenv("MAX_FILE_SIZE_MB", "500")),
     )
     mode = os.getenv("INGEST_MODE", "incremental")
 

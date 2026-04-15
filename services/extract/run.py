@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import math
 from datetime import datetime, timezone
 
 from shared.clients.bigquery import BigQueryClient
@@ -20,6 +21,35 @@ PARSER_MAP = {
     "html": parse_html,
     "xml": parse_xml,
 }
+
+# Magic byte prefixes for binary formats that should never reach a text parser.
+# XLSX is technically a ZIP but is handled by its own binary parser, so excluded here.
+BINARY_MAGIC_BYTES = (
+    b"PK",              # ZIP / RAR-ish (XLSX handled separately via file_format check)
+    b"\x1f\x8b",        # gzip
+    b"%PDF",            # PDF
+    b"\xd0\xcf\x11\xe0",  # OLE2 (old .xls, .doc)
+    b"Rar!",            # RAR
+    b"7z\xbc\xaf",      # 7z
+)
+
+
+def _is_binary_content(data: bytes, file_format: str) -> bool:
+    """Detect binary content that shouldn't be parsed as text.
+
+    XLSX/XLS are handled by their own binary parsers, so skip the check for them.
+    """
+    if file_format.lower() in ("xlsx", "xls"):
+        return False
+    if not data:
+        return False
+    for magic in BINARY_MAGIC_BYTES:
+        if data.startswith(magic):
+            return True
+    # High ratio of control characters (excluding tab/newline/CR) = probably binary
+    sample = data[:512]
+    non_printable = sum(1 for b in sample if b < 0x20 and b not in (0x09, 0x0A, 0x0D))
+    return non_printable / max(len(sample), 1) > 0.10
 
 
 def extract_document(
@@ -44,6 +74,13 @@ def extract_document(
     except Exception as e:
         logger.error("Failed to download %s: %s", gcs_uri, e)
         return {"tables": 0, "headers": 0, "rows": 0, "error": str(e)}
+
+    if _is_binary_content(data, file_format):
+        logger.warning(
+            "Skipping document=%s format=%s — binary content detected (first bytes=%r)",
+            document_id, file_format, data[:8],
+        )
+        return {"tables": 0, "headers": 0, "rows": 0, "skipped_reason": "binary_content"}
 
     tables = _route_to_parser(data, document_id, file_format, title)
 
@@ -74,19 +111,40 @@ def extract_document(
             bq_client.insert_rows(stg_dataset, "headers", [h.to_bq_row() for h in header_records])
             total_headers += len(header_records)
 
-        # Build row_values_long
+        # Build row_values_long — streaming for small, load job for large
         row_values = _build_row_values(table, department_id, document_id, header_records)
         if row_values:
-            # Batch insert in chunks
-            chunk_size = 500
-            for i in range(0, len(row_values), chunk_size):
-                chunk = row_values[i:i + chunk_size]
-                bq_client.insert_rows(stg_dataset, "row_values_long", [rv.to_bq_row() for rv in chunk])
+            rows_dicts = [rv.to_bq_row() for rv in row_values]
+            if len(rows_dicts) > 2000:
+                _load_rows(bq_client, stg_dataset, "row_values_long", rows_dicts)
+            else:
+                for i in range(0, len(rows_dicts), 500):
+                    bq_client.insert_rows(stg_dataset, "row_values_long", rows_dicts[i:i + 500])
             total_rows += len(row_values)
 
     stats = {"tables": len(tables), "headers": total_headers, "rows": total_rows}
     logger.info("Extraction complete for %s: %s", document_id, stats)
     return stats
+
+
+def _load_rows(bq_client: BigQueryClient, dataset: str, table: str, rows: list[dict]) -> None:
+    """Bulk load rows via a load job instead of streaming inserts."""
+    import io
+    import json
+    from google.cloud import bigquery
+
+    ndjson = "\n".join(json.dumps(row) for row in rows)
+    table_ref = f"{bq_client.project_id}.{dataset}.{table}"
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+        autodetect=False,
+    )
+    job = bq_client.client.load_table_from_file(
+        io.BytesIO(ndjson.encode()), table_ref, job_config=job_config
+    )
+    job.result()
+    logger.info("Loaded %d rows into %s via load job", len(rows), table_ref)
 
 
 def _route_to_parser(
@@ -179,7 +237,10 @@ def _try_parse_numeric(s: str | None) -> float | None:
     if cleaned in ("", "-", "...", "x", "n/a", "na", "F", "E"):
         return None
     try:
-        return float(cleaned)
+        val = float(cleaned)
+        if not math.isfinite(val):
+            return None
+        return val
     except (ValueError, TypeError):
         return None
 

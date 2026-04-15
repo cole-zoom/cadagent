@@ -76,8 +76,15 @@ class GocApiClient:
             url = urljoin(GOC_BASE, url)
 
         time.sleep(self.rate_limit_delay)
-        resp = self.session.get(url, timeout=120)
+        resp = self.session.get(url, timeout=60, stream=True)
         resp.raise_for_status()
+
+        # Check Content-Length before downloading the full body
+        content_length = resp.headers.get("Content-Length")
+        if content_length and int(content_length) > 100 * 1024 * 1024:
+            resp.close()
+            raise ValueError(f"File too large ({int(content_length)} bytes), skipping")
+
         return resp.content
 
     @staticmethod

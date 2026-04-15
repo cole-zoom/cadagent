@@ -68,7 +68,9 @@ class HeaderClassifier:
         path = self.mappings_dir / "junk_headers.yaml"
         if path.exists():
             data = yaml.safe_load(path.read_text())
-            for pattern in data.get("junk_patterns", []):
+            for entry in data.get("junk_patterns", []):
+                # Entries may be dicts ({pattern, source, note}) or bare strings
+                pattern = entry["pattern"] if isinstance(entry, dict) else entry
                 self._junk_patterns.append(re.compile(pattern, re.IGNORECASE))
 
     def _load_geography(self) -> None:

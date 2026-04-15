@@ -43,3 +43,5 @@ htmlcov/
 
 .claude
 infra/terraform/terraform.tfvars
+
+DEPLOY.md

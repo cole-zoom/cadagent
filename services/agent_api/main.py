@@ -4,6 +4,7 @@ from pathlib import Path
 
 import anthropic
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from shared.clients.bigquery import BigQueryClient
@@ -18,6 +19,17 @@ configure_logging(settings.log_level, service="agent_api")
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="trace-ca Agent API", version="0.1.0")
+
+# CORS — permissive for POC. Tighten allow_origins to your Vercel domain later
+# via CORS_ALLOWED_ORIGINS="https://your-app.vercel.app,https://..." env var.
+_allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _allowed_origins],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 config = AgentConfig()
 bq_client = BigQueryClient(project_id=settings.gcp_project_id)

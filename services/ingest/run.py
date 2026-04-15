@@ -12,6 +12,8 @@ from .config import IngestConfig
 
 logger = logging.getLogger(__name__)
 
+SUPPORTED_FORMATS = {"csv", "xls", "xlsx", "xml", "json"}
+
 DOCUMENT_TYPE_PATTERNS = [
     (r"budget", "budget"),
     (r"estimate", "estimates"),
@@ -84,6 +86,10 @@ def ingest_department(
             if config.max_resources and resources_processed >= config.max_resources:
                 break
 
+            total = stats["success"] + stats["failed"] + stats["skipped"] + stats["duplicate"]
+            if total % 500 == 0 and total > 0:
+                logger.info("Progress for %s: %s", department_code, stats)
+
             resource_url = resource.get("url", "")
             if not resource_url:
                 continue
@@ -96,9 +102,23 @@ def ingest_department(
                 continue
 
             file_format = GocApiClient.extract_format(resource)
+
+            # Check both the metadata format and the actual URL extension
+            url_lower = resource_url.lower()
+            if file_format not in SUPPORTED_FORMATS or url_lower.endswith((".zip", ".gz", ".tar", ".rar", ".7z", ".pdf", ".doc", ".docx")):
+                stats["skipped"] += 1
+                continue
+
             language = GocApiClient.extract_language(resource)
+
+            # Only ingest English files — also check URL for -fra pattern
+            if language != "en" or url_lower.endswith(("-fra.csv", "-fra.xml", "-fra.xlsx", "-fra.xls")):
+                stats["skipped"] += 1
+                continue
+
             resource_name = resource.get("name", "") or resource.get("id", "unknown")
 
+            logger.info("Downloading %s (%s) format=%s lang=%s", resource_name, resource_url[:80], file_format, language)
             try:
                 data = api_client.download_resource(resource_url)
             except Exception as e:
@@ -108,6 +128,13 @@ def ingest_department(
 
             if len(data) > config.max_file_size_mb * 1024 * 1024:
                 logger.warning("Skipping oversized file (%d bytes): %s", len(data), resource_url)
+                stats["skipped"] += 1
+                continue
+
+            # Defense-in-depth: CKAN occasionally serves ZIPs with format=csv/xml.
+            # Sniff magic bytes before we persist binary garbage to GCS.
+            if file_format in ("csv", "xml") and data[:2] == b"PK":
+                logger.warning("ZIP magic bytes in %s declared as %s: %s", resource_name, file_format, resource_url)
                 stats["skipped"] += 1
                 continue
 
