@@ -44,7 +44,10 @@ class TestParseHtml:
         tables = parse_html(html, "doc1")
         assert tables == []
 
-    def test_uneven_rows_padded(self):
+    def test_uneven_rows_drop_empty_header_columns(self):
+        # Header row has 2 columns; data rows have 3 and 1. After padding to the
+        # widest row (3) the third header is empty, so the column is dropped
+        # along with its data to avoid garbage downstream.
         html = b"""<html><body>
 <table>
   <tr><th>A</th><th>B</th></tr>
@@ -55,11 +58,9 @@ class TestParseHtml:
         tables = parse_html(html, "doc1")
         assert len(tables) == 1
         table = tables[0]
-        # max_cols is max(2 headers, 3 first row, 1 second row) = 3
-        assert len(table.headers) == 3
-        assert table.headers == ["A", "B", ""]
-        assert table.rows[0] == ["1", "2", "3"]
-        assert table.rows[1] == ["4", None, None]
+        assert table.headers == ["A", "B"]
+        assert table.rows[0] == ["1", "2"]
+        assert table.rows[1] == ["4", None]
 
     def test_single_row_table_skipped(self):
         html = b"""<html><body>
