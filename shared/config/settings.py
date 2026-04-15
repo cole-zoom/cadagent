@@ -2,7 +2,13 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    # extra="ignore" so unrelated env vars like ANTHROPIC_API_KEY (consumed by
+    # the anthropic SDK directly, not by pydantic) don't break settings loading.
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
     gcp_project_id: str = ""
     gcp_region: str = "us-east1"

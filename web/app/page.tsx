@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Department = "all" | "fin" | "statcan" | "tbs-sct";
 
@@ -10,11 +12,18 @@ type Source = {
   department: string;
 };
 
+type ToolCall = {
+  name: string;
+  input: Record<string, unknown>;
+  is_error: boolean;
+};
+
 type AskResponse = {
   answer: string;
   sql: string;
   sources: Source[];
   rows_returned: number;
+  tool_calls?: ToolCall[];
 };
 
 const DEPARTMENTS: { id: Department; label: string }[] = [
@@ -24,11 +33,36 @@ const DEPARTMENTS: { id: Department; label: string }[] = [
   { id: "tbs-sct", label: "Treasury Board" },
 ];
 
-const SAMPLE_PROMPTS = [
-  "What was Canada's real GDP growth in 2023?",
-  "Compare unemployment rates across provinces for 2023-24",
-  "Federal tax revenues by category since 2020",
+const PROMPT_BUCKETS: { label: string; prompts: string[] }[] = [
+  {
+    label: "Finance — tax expenditures",
+    prompts: [
+      "What's the cost of the Charitable Donation Tax Credit?",
+      "How much do Registered Pension Plans cost the treasury?",
+      "What are the largest tax expenditures?",
+      "Show me the Scientific Research and Experimental Development Investment Tax Credit over time",
+    ],
+  },
+  {
+    label: "StatCan — population & demographics",
+    prompts: [
+      "What was the population in 2016?",
+      "Compare population between 2011 and 2016",
+      "Population data for New Brunswick",
+      "What are the largest population values in the data?",
+    ],
+  },
+  {
+    label: "Exploration",
+    prompts: [
+      "What data do you have about the Department of Health?",
+      "Show me data from 2023 across all departments",
+      "What metrics are available for Finance Canada?",
+    ],
+  },
 ];
+
+const FLAT_PROMPTS = PROMPT_BUCKETS.flatMap((b) => b.prompts).slice(0, 3);
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -152,13 +186,13 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Sample prompts */}
+        {/* Sample prompts — flat quick-start */}
         {!question && !result && (
           <div className="rise rise-4 mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px]">
             <span className="font-mono text-[11px] uppercase tracking-widest text-muted">
               try —
             </span>
-            {SAMPLE_PROMPTS.map((p) => (
+            {FLAT_PROMPTS.map((p) => (
               <button
                 key={p}
                 type="button"
@@ -231,11 +265,48 @@ export default function Page() {
         </p>
       </section>
 
+      {/* ─── Prompt library ───────────────────────────────────── */}
+      {!result && !error && !loading && (
+        <section className="mt-24 border-t border-rule/60 pt-12">
+          <div className="mb-8 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-muted">
+            <span>№ 02</span>
+            <span className="h-px w-10 bg-rule" />
+            <span>what you can ask</span>
+          </div>
+          <div className="grid gap-10 md:grid-cols-3">
+            {PROMPT_BUCKETS.map((bucket) => (
+              <div key={bucket.label}>
+                <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted">
+                  {bucket.label}
+                </div>
+                <ul className="space-y-3">
+                  {bucket.prompts.map((p) => (
+                    <li key={p}>
+                      <button
+                        type="button"
+                        onClick={() => setQuestion(p)}
+                        className="group block text-left font-display text-[17px] italic leading-snug text-ink transition-colors hover:text-accent"
+                      >
+                        {p}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="mt-10 font-mono text-[10px] uppercase tracking-widest text-rule">
+            tap any question to load it above · rich with Finance tax
+            expenditures, StatCan census 2011 / 2016, some departmental data
+          </p>
+        </section>
+      )}
+
       {/* ─── Result ───────────────────────────────────────────── */}
       {(result || error) && (
         <section className="mt-24 border-t border-rule/60 pt-12">
           <div className="mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-muted">
-            <span>№ 02</span>
+            <span>№ 03</span>
             <span className="h-px w-10 bg-rule" />
             <span>{error ? "error" : "result"}</span>
             {result && (
@@ -259,13 +330,71 @@ export default function Page() {
 
           {result && (
             <article className="max-w-[72ch]">
-              {/* Answer */}
-              <div className="font-display text-[22px] leading-[1.5] text-ink md:text-[24px]">
-                {result.answer.split(/\n\n+/).map((para, i) => (
-                  <p key={i} className={i > 0 ? "mt-5" : ""}>
-                    {para}
-                  </p>
-                ))}
+              {/* Answer — markdown rendered */}
+              <div className="prose-answer">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h2: ({ children }) => (
+                      <h2 className="mt-8 mb-3 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-muted first:mt-0">
+                        <span>{children}</span>
+                        <span className="h-px flex-1 bg-rule/50" />
+                      </h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="mt-5 mb-2 font-display text-[18px] italic text-ink">
+                        {children}
+                      </h3>
+                    ),
+                    p: ({ children }) => (
+                      <p className="mb-4 font-display text-[21px] leading-[1.5] text-ink last:mb-0 md:text-[23px]">
+                        {children}
+                      </p>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="mb-5 space-y-2 pl-0">{children}</ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="mb-5 list-decimal space-y-2 pl-6 marker:font-mono marker:text-[11px] marker:text-rule">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="flex gap-3 font-display text-[18px] leading-snug text-ink md:text-[19px]">
+                        <span className="mt-[0.65em] inline-block h-px w-4 shrink-0 bg-rule" aria-hidden />
+                        <span className="flex-1">{children}</span>
+                      </li>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-display text-ink">{children}</strong>
+                    ),
+                    em: ({ children }) => (
+                      <em className="italic text-muted">{children}</em>
+                    ),
+                    a: ({ href, children }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-ink underline decoration-rule decoration-1 underline-offset-4 transition-colors hover:decoration-accent"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    code: ({ children }) => (
+                      <code className="bg-paper-deep/70 px-[0.3em] py-[0.08em] font-mono text-[0.85em] text-ink">
+                        {children}
+                      </code>
+                    ),
+                    blockquote: ({ children }) => (
+                      <blockquote className="mb-4 border-l-2 border-rule pl-4 font-display italic text-muted">
+                        {children}
+                      </blockquote>
+                    ),
+                  }}
+                >
+                  {result.answer}
+                </ReactMarkdown>
               </div>
 
               {/* SQL — expandable */}

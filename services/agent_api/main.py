@@ -14,11 +14,12 @@ from shared.config.settings import settings
 from .citation import format_citations, lookup_citations
 from .config import AgentConfig
 from .sql_validator import SQLValidationError, validate_sql
+from .tools import TOOLS, dispatch_tool
 
 configure_logging(settings.log_level, service="agent_api")
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="trace-ca Agent API", version="0.1.0")
+app = FastAPI(title="trace-ca Agent API", version="0.2.0")
 
 # CORS — permissive for POC. Tighten allow_origins to your Vercel domain later
 # via CORS_ALLOWED_ORIGINS="https://your-app.vercel.app,https://..." env var.
@@ -39,6 +40,22 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 SYSTEM_PROMPT = (PROMPTS_DIR / "system_prompt.txt").read_text()
 CITATION_PROMPT = (PROMPTS_DIR / "citation_prompt.txt").read_text()
 
+# Combined system prompt for the agent loop: schema knowledge + formatting rules.
+AGENT_SYSTEM_PROMPT = (
+    SYSTEM_PROMPT
+    + "\n\n---\n\n"
+    "You have access to tools for exploring the data warehouse. Use them "
+    "iteratively to answer the user's question. When a query returns 0 rows, "
+    "use `list_metrics`, `list_time_periods`, or `list_geographies` to find "
+    "a close match and retry. For meta-questions like 'what data do you "
+    "have?', start with `describe_coverage`.\n\n"
+    "When you have enough information, respond with a final answer in "
+    "GitHub-flavored Markdown:\n\n"
+    + CITATION_PROMPT
+)
+
+MAX_TOOL_ITERATIONS = 8
+
 
 class AskRequest(BaseModel):
     question: str
@@ -50,6 +67,7 @@ class AskResponse(BaseModel):
     sql: str
     sources: list[dict]
     rows_returned: int
+    tool_calls: list[dict]
 
 
 class ExplainResponse(BaseModel):
@@ -64,108 +82,160 @@ def health() -> dict:
 
 @app.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest) -> AskResponse:
-    """Answer a natural-language question with SQL + provenance."""
+    """Answer a natural-language question using an agent loop with tools."""
     question = request.question
-
-    # Add department filter hint if specified
-    dept_hint = ""
     if request.department and request.department != "all":
-        dept_hint = f"\nFilter results to department_id = '{request.department}'."
+        question = (
+            f"{question}\n\n(Filter results to department_id = "
+            f"'{request.department}' where relevant.)"
+        )
 
-    # Step 1: Generate SQL
-    sql = _generate_sql(question + dept_hint)
+    messages: list[dict] = [{"role": "user", "content": question}]
+    collected_doc_ids: set[str] = set()
+    tool_calls_log: list[dict] = []
+    last_sql = ""
+    last_rows_returned = 0
 
-    # Step 2: Validate SQL
-    try:
-        sql = validate_sql(sql, settings.gcp_project_id)
-    except SQLValidationError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid SQL generated: {e}")
+    for iteration in range(MAX_TOOL_ITERATIONS):
+        try:
+            response = llm_client.messages.create(
+                model=config.llm_model,
+                max_tokens=2048,
+                system=AGENT_SYSTEM_PROMPT,
+                tools=TOOLS,
+                messages=messages,
+            )
+        except anthropic.BadRequestError as e:
+            logger.error("Anthropic bad request: %s", e)
+            raise HTTPException(
+                status_code=500, detail=f"LLM call failed: {e}"
+            )
 
-    # Step 3: Replace table references with fully qualified names
-    sql = _qualify_tables(sql)
+        # Append the assistant's turn to the conversation
+        messages.append({"role": "assistant", "content": response.content})
 
-    # Step 4: Execute query
-    try:
-        rows = bq_client.query(sql)
-    except Exception as e:
-        logger.error("Query execution failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Query execution failed: {e}")
+        if response.stop_reason == "end_turn":
+            break
 
-    # Step 5: Look up citations
-    doc_ids = list({r.get("document_id", "") for r in rows if r.get("document_id")})
+        if response.stop_reason != "tool_use":
+            logger.warning(
+                "Unexpected stop_reason=%s on iteration %d",
+                response.stop_reason, iteration,
+            )
+            break
+
+        # Execute each tool the model asked for
+        tool_results = []
+        for block in response.content:
+            if block.type != "tool_use":
+                continue
+            logger.info(
+                "tool_use: name=%s input=%s", block.name, _truncate(block.input)
+            )
+            result = dispatch_tool(
+                block.name,
+                block.input,
+                bq_client,
+                settings.gcp_project_id,
+                settings.bq_cur_dataset,
+            )
+            collected_doc_ids |= result.document_ids
+
+            if block.name == "query_data" and isinstance(block.input, dict):
+                last_sql = block.input.get("sql", last_sql)
+                # Rough parse: find the row count from the JSON payload
+                try:
+                    import json as _json
+                    parsed = _json.loads(result.content)
+                    if isinstance(parsed, dict) and "rows_returned" in parsed:
+                        last_rows_returned = int(parsed["rows_returned"])
+                except Exception:
+                    pass
+
+            tool_calls_log.append({
+                "name": block.name,
+                "input": block.input,
+                "is_error": result.is_error,
+            })
+            tool_results.append({
+                "type": "tool_result",
+                "tool_use_id": block.id,
+                "content": result.content,
+                "is_error": result.is_error,
+            })
+
+        messages.append({"role": "user", "content": tool_results})
+    else:
+        logger.warning(
+            "Agent loop hit MAX_TOOL_ITERATIONS (%d)", MAX_TOOL_ITERATIONS
+        )
+
+    # Extract final assistant text from the last response
+    answer = _extract_final_text(response.content)
+    if not answer.strip():
+        answer = "The agent did not return a final answer. This usually means the loop hit the iteration limit — try a more specific question."
+
+    # Look up citations for all doc_ids encountered
     citations = lookup_citations(
-        bq_client, settings.gcp_project_id, settings.bq_cur_dataset, settings.bq_raw_dataset, doc_ids
+        bq_client,
+        settings.gcp_project_id,
+        settings.bq_cur_dataset,
+        settings.bq_raw_dataset,
+        list(collected_doc_ids),
     )
-
-    # Step 6: Format answer with LLM
-    answer = _format_answer(question, rows, citations)
 
     return AskResponse(
         answer=answer,
-        sql=sql,
-        sources=[{"title": c.title, "url": c.source_url, "department": c.department} for c in citations],
-        rows_returned=len(rows),
+        sql=last_sql,
+        sources=[
+            {
+                "title": c.title,
+                "url": c.source_url,
+                "department": c.department,
+            }
+            for c in citations
+        ],
+        rows_returned=last_rows_returned,
+        tool_calls=tool_calls_log,
     )
 
 
 @app.post("/explain", response_model=ExplainResponse)
 def explain(request: AskRequest) -> ExplainResponse:
-    """Return generated SQL without executing it."""
-    sql = _generate_sql(request.question)
+    """Return generated SQL without executing it (single-shot, no tools)."""
+    response = llm_client.messages.create(
+        model=config.llm_model,
+        max_tokens=2048,
+        system=SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": request.question}],
+    )
+    sql = response.content[0].text.strip()
+    if sql.startswith("```"):
+        lines = sql.split("\n")
+        sql = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:])
+    sql = sql.strip()
+
     try:
         sql = validate_sql(sql, settings.gcp_project_id)
     except SQLValidationError as e:
         raise HTTPException(status_code=400, detail=f"Invalid SQL: {e}")
 
-    return ExplainResponse(sql=_qualify_tables(sql), question=request.question)
-
-
-def _generate_sql(question: str) -> str:
-    """Use the LLM to generate SQL from a natural-language question."""
-    response = llm_client.messages.create(
-        model=config.llm_model,
-        max_tokens=2048,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": question}],
-    )
-
-    sql = response.content[0].text.strip()
-
-    # Strip markdown code fences if present
-    if sql.startswith("```"):
-        lines = sql.split("\n")
-        sql = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:])
-
-    return sql.strip()
-
-
-def _format_answer(question: str, rows: list[dict], citations: list) -> str:
-    """Use the LLM to format a human-readable answer from query results."""
-    results_str = str(rows[:20])  # Limit context size
-    citations_str = format_citations(citations)
-
-    response = llm_client.messages.create(
-        model=config.llm_model,
-        max_tokens=1024,
-        system=CITATION_PROMPT,
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    f"Question: {question}\n\n"
-                    f"Query returned {len(rows)} rows. First results:\n{results_str}\n\n"
-                    f"Source documents:\n{citations_str}"
-                ),
-            }
-        ],
-    )
-
-    return response.content[0].text.strip()
-
-
-def _qualify_tables(sql: str) -> str:
-    """Replace `cur.table` with `project.cur.table`."""
     project = settings.gcp_project_id
     for dataset in ("cur", "quality"):
         sql = sql.replace(f"`{dataset}.", f"`{project}.{dataset}.")
-    return sql
+
+    return ExplainResponse(sql=sql, question=request.question)
+
+
+def _extract_final_text(content) -> str:
+    """Join all text blocks from the final assistant message."""
+    parts = []
+    for block in content:
+        if getattr(block, "type", None) == "text":
+            parts.append(block.text)
+    return "\n".join(parts).strip()
+
+
+def _truncate(obj, limit: int = 200) -> str:
+    s = str(obj)
+    return s if len(s) <= limit else s[:limit] + "…"

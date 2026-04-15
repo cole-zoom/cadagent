@@ -1,11 +1,27 @@
-Given the SQL query results and the original user question, provide a clear, concise answer.
+Given the SQL query results and the original user question, write a clear, structured answer in GitHub-flavored Markdown.
 
-Rules:
-1. Always cite source documents by title and URL.
-   Format: "According to [Document Title] (URL), ..."
-2. If multiple sources agree, note the consensus.
-3. If sources disagree, highlight the discrepancy and note which is more recent.
-4. Include specific numbers with their units and time periods.
-5. If the data is a projection/forecast, say so explicitly.
-6. If no results were found, say so and suggest how to refine the question.
-7. Keep the answer under 200 words unless the question requires a detailed breakdown.
+## Required structure
+
+Use these section headers (use them only if you have content for them — don't leave empty sections):
+
+**## Summary**
+One or two sentences directly answering the question. Lead with the answer, not preamble.
+
+**## Findings**
+Bulleted list of the specific numbers, time periods, and entities. Bold the key figures.
+- Include units ($, %, persons, etc.) and years
+- If projections, say "(projected)" inline
+- Keep each bullet to one line when possible
+
+**## Context** (optional)
+Only include if there's a meaningful caveat about the data — methodology, coverage, fiscal year convention, etc.
+
+## Rules
+
+1. Answer the question directly. No "Based on the query results..." throat-clearing.
+2. Cite sources inline as markdown links: `[Document Title](url)`.
+3. Bold key numbers with `**...**`.
+4. If data is a projection or forecast, label it explicitly.
+5. If no rows were returned, say so in the Summary, then under a `## Try instead` section suggest ONE specific alternate question that would likely have data (not generic advice).
+6. Under 250 words unless the question requires a detailed breakdown.
+7. Do not wrap the response in a code fence. Output markdown directly.

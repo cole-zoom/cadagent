@@ -14,7 +14,8 @@ import unittest.mock as mock
 with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key", "GCP_PROJECT_ID": "test-project"}):
     with mock.patch("google.cloud.bigquery.Client"):
         with mock.patch("anthropic.Anthropic"):
-            from services.agent_api.main import app, _qualify_tables
+            from services.agent_api.main import app
+            from services.agent_api.tools import _qualify_tables
 
 from fastapi.testclient import TestClient
 
@@ -34,12 +35,12 @@ class TestHealthEndpoint:
 class TestQualifyTables:
     def test_replaces_cur_dataset(self):
         sql = "SELECT * FROM `cur.fact_observation`"
-        result = _qualify_tables(sql)
+        result = _qualify_tables(sql, "test-project")
         assert "`test-project.cur.fact_observation`" in result
 
     def test_replaces_quality_dataset(self):
         sql = "SELECT * FROM `quality.observation_quality`"
-        result = _qualify_tables(sql)
+        result = _qualify_tables(sql, "test-project")
         assert "`test-project.quality.observation_quality`" in result
 
     def test_replaces_both_datasets(self):
@@ -47,16 +48,16 @@ class TestQualifyTables:
             "SELECT * FROM `cur.fact_observation` f "
             "JOIN `quality.observation_quality` q ON f.observation_id = q.observation_id"
         )
-        result = _qualify_tables(sql)
+        result = _qualify_tables(sql, "test-project")
         assert "`test-project.cur.fact_observation`" in result
         assert "`test-project.quality.observation_quality`" in result
 
     def test_does_not_alter_other_refs(self):
         sql = "SELECT * FROM `cur.fact_observation` WHERE metric_id = 'abc'"
-        result = _qualify_tables(sql)
+        result = _qualify_tables(sql, "test-project")
         assert "metric_id = 'abc'" in result
 
     def test_no_datasets_unchanged(self):
         sql = "SELECT 1"
-        result = _qualify_tables(sql)
+        result = _qualify_tables(sql, "test-project")
         assert result == "SELECT 1"
