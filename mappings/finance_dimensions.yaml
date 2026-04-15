@@ -1,0 +1,33 @@
+# finance_dimensions.yaml
+# Dimensional column configuration for Finance Canada long-format tables.
+# Used by FinanceTransformStrategy._transform_dimensional_long to identify
+# non-metric, non-time, non-geo columns and to build composite metric labels.
+
+# Column names that are dimensional attributes (not metrics, times, or geos).
+# Kept for future bridge_observation_attribute work.
+dimension_columns:
+  - category
+  - tax
+  - group
+  - measure
+  - details
+  - subject
+  - item
+  - subitem
+  - description
+  - organization
+  - vote
+  - vote number
+  - program
+
+# Column names whose row values are concatenated (pipe-separated) to form
+# the composite metric label used for classification and mapping.
+# Order in this list does NOT control concatenation order — concatenation
+# follows column order in the source table.
+metric_label_columns:
+  - subject
+  - item
+  - subitem
+  - measure
+  - description
+  - details
