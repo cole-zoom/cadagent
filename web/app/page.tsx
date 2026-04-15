@@ -130,19 +130,26 @@ export default function Page() {
         </p>
 
         {/* Textarea */}
-        <div className="rise rise-3 mt-12 border-t border-rule/50">
+        <div className="rise rise-3 mt-12">
+          <div className="mb-3 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-muted">
+            <span>your question</span>
+            <span className="h-px flex-1 bg-rule/50" />
+          </div>
           <label htmlFor="q" className="sr-only">
             Your question
           </label>
-          <textarea
-            id="q"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="What was Canada's real GDP growth in 2023?"
-            rows={2}
-            className="block w-full resize-none bg-transparent pt-8 font-display text-[clamp(1.5rem,3vw,2.25rem)] leading-[1.3] text-ink placeholder:text-rule focus:outline-none"
-          />
+          <div className="group/input relative border-b border-rule/60 pb-3 transition-colors focus-within:border-ink/70">
+            <textarea
+              id="q"
+              autoFocus
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="What was Canada's real GDP growth in 2023?"
+              rows={2}
+              className="block w-full resize-none bg-transparent pt-4 font-display text-[clamp(1.5rem,3vw,2.25rem)] leading-[1.3] text-ink placeholder:text-rule focus:outline-none"
+            />
+          </div>
         </div>
 
         {/* Sample prompts */}
@@ -197,7 +204,11 @@ export default function Page() {
             type="button"
             onClick={submit}
             disabled={!question.trim() || loading}
-            className="group inline-flex items-center font-mono text-[12px] uppercase tracking-widest text-ink transition-opacity disabled:cursor-not-allowed disabled:opacity-30"
+            className={`group inline-flex items-center border px-5 py-3 font-mono text-[12px] uppercase tracking-widest transition-all disabled:cursor-not-allowed ${
+              !question.trim() || loading
+                ? "border-rule/60 text-muted"
+                : "border-ink bg-ink text-paper hover:bg-accent hover:border-accent"
+            }`}
           >
             <span className="arrow-line" aria-hidden />
             {loading ? (
