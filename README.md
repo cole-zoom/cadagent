@@ -128,6 +128,100 @@ terraform plan
 terraform apply
 ```
 
+## Example Questions
+
+The agent uses a tool-use loop and can introspect the warehouse before
+answering — questions about *what's in the data* work just as well as
+direct questions. The lists below reflect what's answerable given current
+data coverage.
+
+### Meta / discovery
+
+- What data do you have?
+- What can I ask about?
+- Give me a summary of the data warehouse
+- How much data do you have about Finance Canada?
+- What metrics are available for StatCan?
+
+### Finance tax expenditures
+
+- What's the cost of the Charitable Donation Tax Credit?
+- How much do Registered Pension Plans cost the treasury?
+- What are the largest tax expenditures in Canada?
+- What's the cost of the Scientific Research and Experimental Development Investment Tax Credit?
+- Show me the Non-capital loss carry-overs over time
+- Apprenticeship Job Creation Tax Credit cost
+- Atlantic Investment Tax Credit
+- Lifetime Capital Gains Exemption cost
+- Logging Tax Credit amounts
+- Refundable taxes on investment income of private corporations
+- Tax treatment of farm savings accounts (AgriInvest and Agri-Québec)
+- Registered Retirement Savings Plans tax cost
+- Deductibility of charitable donations
+- What tax expenditures relate to charity?
+- List tax expenditures related to research
+
+### StatCan census (2011 and 2016)
+
+- What was the population in 2016?
+- How did population change between 2011 and 2016?
+- What are the largest population values in the data?
+- Population of New Brunswick in 2016
+- Population of Quebec
+- Compare population in Newfoundland and British Columbia
+- Population density data
+- Housing dwellings in 2016
+- Land area of Nunavut
+
+### Named geographies (6 provinces have matched data)
+
+- Data for New Brunswick
+- Data for Nunavut
+- Show me Quebec data
+- British Columbia statistics
+- Newfoundland and Labrador data
+- Nova Scotia observations
+
+### Time-based exploration
+
+- What time periods does the data cover?
+- Show me everything from 2016
+- Recent Finance data since 2020
+
+### Department-specific
+
+- What's available from Finance Canada?
+- Show me Treasury Board Secretariat data
+- Department of Health data
+
+### Stretch — multi-query (agent will explore)
+
+- Which tax expenditure grew the most over time?
+- Compare Finance and StatCan coverage
+- Top 10 tax credits by total value
+- Show me pension-related tax data
+- List metrics with "credit" in the name
+
+### Known gaps — will underperform
+
+- GDP, inflation, unemployment, CPI — metric names aren't populated in
+  `cur.dim_metric`
+- Specific monthly or quarterly breakdowns — `cur.dim_time` currently only
+  holds year labels
+- Cross-departmental comparisons of specific dollar amounts — data shapes
+  differ between departments
+- Province-level Finance data — `geography_id` is mostly NULL for fin
+- 2024 / 2025 projections — limited data past 2023
+
+### Hero demos (recommended live order)
+
+1. "What data do you have?" — shows the agent loop exploring
+2. "What's the cost of the Charitable Donation Tax Credit?" — real Finance
+   data with formatted markdown + citations
+3. "What was the population in 2016?" — large numbers, good visual impact
+4. "What are the largest tax expenditures?" — comparative, well-formatted
+5. "Compare population between 2011 and 2016" — cross-time reasoning
+
 ## Design Docs
 
 | Document | Path | Describes |

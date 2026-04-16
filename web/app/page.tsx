@@ -24,6 +24,7 @@ type AskResponse = {
   sources: Source[];
   rows_returned: number;
   tool_calls?: ToolCall[];
+  path?: "fast" | "agent";
 };
 
 const DEPARTMENTS: { id: Department; label: string }[] = [

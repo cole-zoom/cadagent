@@ -290,29 +290,54 @@ def _list_geographies(
 def _describe_coverage(
     bq: BigQueryClient, project_id: str, cur_dataset: str
 ) -> ToolResult:
-    sql = f"""
+    """One-shot full discovery: per-department counts, top metrics, time periods,
+    named geographies. Designed so the agent rarely needs to call list_* tools
+    separately."""
+    coverage_sql = f"""
         SELECT
           department_id,
           COUNT(*) AS observations,
-          COUNT(DISTINCT metric_id) AS metrics,
-          COUNT(DISTINCT document_id) AS documents,
-          MIN(dt.label) AS earliest_time,
-          MAX(dt.label) AS latest_time
-        FROM `{project_id}.{cur_dataset}.fact_observation` f
-        LEFT JOIN `{project_id}.{cur_dataset}.dim_time` dt USING (time_id)
+          COUNT(DISTINCT metric_id) AS distinct_metrics,
+          COUNT(DISTINCT document_id) AS documents
+        FROM `{project_id}.{cur_dataset}.fact_observation`
         GROUP BY department_id
         ORDER BY observations DESC
     """
-    rows = bq.query(sql)
+    metrics_sql = f"""
+        SELECT dm.canonical_name, COUNT(f.observation_id) AS obs
+        FROM `{project_id}.{cur_dataset}.fact_observation` f
+        JOIN `{project_id}.{cur_dataset}.dim_metric` dm USING (metric_id)
+        WHERE dm.canonical_name IS NOT NULL AND dm.canonical_name != ''
+        GROUP BY dm.canonical_name
+        ORDER BY obs DESC
+        LIMIT 30
+    """
+    times_sql = f"""
+        SELECT dt.label, COUNT(f.observation_id) AS obs
+        FROM `{project_id}.{cur_dataset}.fact_observation` f
+        JOIN `{project_id}.{cur_dataset}.dim_time` dt USING (time_id)
+        GROUP BY dt.label
+        ORDER BY obs DESC
+    """
+    geos_sql = f"""
+        SELECT dg.name_en, dg.geo_type, COUNT(f.observation_id) AS obs
+        FROM `{project_id}.{cur_dataset}.fact_observation` f
+        JOIN `{project_id}.{cur_dataset}.dim_geography` dg USING (geography_id)
+        GROUP BY dg.name_en, dg.geo_type
+        ORDER BY obs DESC
+    """
     return ToolResult(
         json.dumps(
             {
-                "coverage_by_department": rows,
+                "coverage_by_department": bq.query(coverage_sql),
+                "top_30_metrics": bq.query(metrics_sql),
+                "time_periods": bq.query(times_sql),
+                "named_geographies_with_data": bq.query(geos_sql),
                 "notes": [
                     "department_id values: fin (Finance Canada), statcan (Statistics Canada), tbs-sct (Treasury Board Secretariat)",
                     "StatCan data is mostly 2011 / 2016 census population + density.",
-                    "Finance data is mostly tax expenditures (Charitable Donation Tax Credit, Registered Pension Plans, etc.)",
-                    "TBS-SCT data is sparse.",
+                    "Finance data is mostly tax expenditures.",
+                    "Most fact_observation rows have geography_id = NULL.",
                 ],
             },
             default=str,
