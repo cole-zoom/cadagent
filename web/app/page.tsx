@@ -67,6 +67,28 @@ const FLAT_PROMPTS = PROMPT_BUCKETS.flatMap((b) => b.prompts).slice(0, 3);
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+const TOOL_LABELS: Record<string, string> = {
+  query_data: "queried the warehouse",
+  list_metrics: "searched metrics",
+  list_time_periods: "checked time periods",
+  list_geographies: "listed geographies",
+  describe_coverage: "surveyed data coverage",
+  fast_path_query: "ran direct query",
+};
+
+function toolSummary(tc: ToolCall): string {
+  const label = TOOL_LABELS[tc.name] || tc.name;
+  const input = tc.input || {};
+  if (tc.name === "query_data" || tc.name === "fast_path_query") {
+    const sql = (input.sql as string) || "";
+    return `${label} — ${sql.length > 80 ? sql.slice(0, 80) + "…" : sql}`;
+  }
+  if (tc.name === "list_metrics" && input.search) {
+    return `${label} for "${input.search}"`;
+  }
+  return label;
+}
+
 export default function Page() {
   const [question, setQuestion] = useState("");
   const [department, setDepartment] = useState<Department>("all");
@@ -74,6 +96,7 @@ export default function Page() {
   const [result, setResult] = useState<AskResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSql, setShowSql] = useState(false);
+  const [showActivity, setShowActivity] = useState(true);
 
   async function submit() {
     const q = question.trim();
@@ -82,6 +105,7 @@ export default function Page() {
     setError(null);
     setResult(null);
     setShowSql(false);
+    setShowActivity(true);
 
     try {
       const res = await fetch(`${API_URL}/ask`, {
@@ -397,6 +421,52 @@ export default function Page() {
                   {result.answer}
                 </ReactMarkdown>
               </div>
+
+              {/* Agent activity */}
+              {result.tool_calls && result.tool_calls.length > 0 && (
+                <div className="mt-14 border-t border-rule/50 pt-5">
+                  <button
+                    type="button"
+                    onClick={() => setShowActivity((s) => !s)}
+                    className="group flex w-full items-center justify-between font-mono text-[11px] uppercase tracking-widest text-muted transition-colors hover:text-ink"
+                  >
+                    <span className="flex items-center gap-3">
+                      <span>
+                        agent activity
+                        <span className="ml-2 normal-case tracking-normal italic text-rule">
+                          {result.path === "fast"
+                            ? "— direct path"
+                            : `— ${result.tool_calls.length} step${result.tool_calls.length === 1 ? "" : "s"}`}
+                        </span>
+                      </span>
+                      <span className="h-px w-10 bg-rule" />
+                    </span>
+                    <span className="text-ink">
+                      {showActivity ? "hide −" : "show +"}
+                    </span>
+                  </button>
+                  {showActivity && (
+                    <ol className="mt-5 space-y-3">
+                      {result.tool_calls.map((tc, i) => (
+                        <li key={i} className="flex gap-4">
+                          <span className="mt-[2px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-rule/80 font-mono text-[9px] text-muted">
+                            {i + 1}
+                          </span>
+                          <div className="flex-1">
+                            <span
+                              className={`font-mono text-[12px] leading-relaxed ${
+                                tc.is_error ? "text-accent" : "text-ink"
+                              }`}
+                            >
+                              {toolSummary(tc)}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              )}
 
               {/* SQL — expandable */}
               <div className="mt-14 border-t border-rule/50 pt-5">
