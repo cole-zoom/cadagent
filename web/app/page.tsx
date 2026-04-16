@@ -93,6 +93,8 @@ export default function Page() {
   const [question, setQuestion] = useState("");
   const [department, setDepartment] = useState<Department>("all");
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [liveToolCalls, setLiveToolCalls] = useState<ToolCall[]>([]);
   const [result, setResult] = useState<AskResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSql, setShowSql] = useState(false);
@@ -106,6 +108,8 @@ export default function Page() {
     setResult(null);
     setShowSql(false);
     setShowActivity(true);
+    setStatusMessage("connecting...");
+    setLiveToolCalls([]);
 
     try {
       const res = await fetch(`${API_URL}/ask`, {
@@ -119,27 +123,47 @@ export default function Page() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({ detail: res.statusText }));
-        if (res.status === 400) {
-          setError(
-            `The generated query was rejected by the validator. ${body.detail || ""}`,
-          );
-        } else if (res.status >= 500) {
-          setError(
-            `The query could not be executed. ${body.detail || "Upstream error."}`,
-          );
-        } else {
-          setError(body.detail || `Unexpected ${res.status}.`);
-        }
+        setError(body.detail || `Unexpected ${res.status}.`);
         return;
       }
 
-      const json = (await res.json()) as AskResponse;
-      setResult(json);
+      // Read the NDJSON stream line by line
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setError("Streaming not supported in this browser.");
+        return;
+      }
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const event = JSON.parse(line);
+            if (event.type === "status") {
+              setStatusMessage(event.message);
+            } else if (event.type === "tool_call") {
+              setLiveToolCalls((prev) => [...prev, event.data]);
+            } else if (event.type === "result") {
+              setResult(event.data as AskResponse);
+            }
+          } catch {
+            // Ignore unparseable lines
+          }
+        }
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Network error";
       setError(`Could not reach the data warehouse. ${msg}`);
     } finally {
       setLoading(false);
+      setStatusMessage("");
     }
   }
 
@@ -272,7 +296,7 @@ export default function Page() {
             <span className="arrow-line" aria-hidden />
             {loading ? (
               <span className="inline-flex items-baseline gap-2">
-                querying
+                working
                 <span className="inline-flex gap-[3px]">
                   <span className="dot">·</span>
                   <span className="dot">·</span>
@@ -289,6 +313,57 @@ export default function Page() {
           ⌘ + return
         </p>
       </section>
+
+      {/* ─── Live agent status ──────────────────────────────────── */}
+      {loading && (
+        <section className="mt-16 border-t border-rule/60 pt-10">
+          <div className="mb-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-widest text-muted">
+            <span>agent</span>
+            <span className="h-px w-10 bg-rule" />
+            <span className="italic normal-case tracking-normal text-ink">
+              {statusMessage}
+            </span>
+          </div>
+
+          {liveToolCalls.length > 0 && (
+            <ol className="space-y-2">
+              {liveToolCalls.map((tc, i) => (
+                <li key={i} className="flex gap-4">
+                  <span className="mt-[2px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-rule/80 font-mono text-[9px] text-muted">
+                    {i + 1}
+                  </span>
+                  <span
+                    className={`font-mono text-[12px] leading-relaxed ${
+                      tc.is_error ? "text-accent" : "text-ink/70"
+                    }`}
+                  >
+                    {toolSummary(tc)}
+                  </span>
+                </li>
+              ))}
+              {/* Blinking cursor for the current step */}
+              <li className="flex gap-4">
+                <span className="mt-[2px] flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-dashed border-rule/50 font-mono text-[9px] text-rule">
+                  {liveToolCalls.length + 1}
+                </span>
+                <span className="inline-flex items-baseline gap-[3px] font-mono text-[12px] text-rule">
+                  <span className="dot">·</span>
+                  <span className="dot">·</span>
+                  <span className="dot">·</span>
+                </span>
+              </li>
+            </ol>
+          )}
+
+          {liveToolCalls.length === 0 && (
+            <div className="flex items-baseline gap-[3px] font-mono text-[12px] text-rule">
+              <span className="dot">·</span>
+              <span className="dot">·</span>
+              <span className="dot">·</span>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ─── Prompt library ───────────────────────────────────── */}
       {!result && !error && !loading && (

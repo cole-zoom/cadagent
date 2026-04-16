@@ -1,3 +1,4 @@
+import json as _json
 import logging
 import os
 from pathlib import Path
@@ -5,6 +6,7 @@ from pathlib import Path
 import anthropic
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from shared.clients.bigquery import BigQueryClient
@@ -175,16 +177,45 @@ def health() -> dict:
     return {"status": "ok", "service": "agent_api"}
 
 
-@app.post("/ask", response_model=AskResponse)
-def ask(request: AskRequest) -> AskResponse:
-    """Two-tier: try single-shot SQL first, fall back to agent loop on miss."""
-    fast = _try_fast_path(request)
-    if fast is not None:
-        logger.info("Fast path succeeded (rows=%d)", fast.rows_returned)
-        return fast
+def _emit(event_type: str, **kwargs) -> str:
+    """Emit one NDJSON line for the streaming response."""
+    return _json.dumps({"type": event_type, **kwargs}, default=str) + "\n"
 
-    logger.info("Fast path missed; escalating to agent loop")
-    return _agent_loop(request)
+
+@app.post("/ask")
+def ask(request: AskRequest):
+    """Two-tier streaming endpoint. Emits NDJSON events:
+    - {"type": "status", "message": "..."}         — live step updates
+    - {"type": "tool_call", "data": {...}}          — tool invocation log
+    - {"type": "result", "data": {...AskResponse}}  — final answer
+    """
+    return StreamingResponse(
+        _stream_ask(request),
+        media_type="application/x-ndjson",
+    )
+
+
+def _stream_ask(request: AskRequest):
+    """Generator that yields NDJSON events as the agent works."""
+
+    # ── Fast path ────────────────────────────────────────────────
+    yield _emit("status", message="writing SQL...")
+    fast = _try_fast_path_streaming(request)
+    if fast is not None:
+        logger.info("Fast path succeeded (rows=%d)", fast["rows_returned"])
+        yield _emit("tool_call", data={
+            "name": "fast_path_query",
+            "input": {"sql": fast["sql"]},
+            "is_error": False,
+        })
+        yield _emit("status", message="composing the answer...")
+        # fast already has the answer formatted
+        yield _emit("result", data=fast)
+        return
+
+    # ── Agent loop ───────────────────────────────────────────────
+    yield _emit("status", message="escalating to agent...")
+    yield from _agent_loop_streaming(request)
 
 
 @app.post("/explain", response_model=ExplainResponse)
@@ -204,60 +235,50 @@ def explain(request: AskRequest) -> ExplainResponse:
 # ──────────────────────────────────────────────────────────────────────────
 
 
-def _try_fast_path(request: AskRequest) -> AskResponse | None:
+def _try_fast_path_streaming(request: AskRequest) -> dict | None:
     """Try to answer with one SQL query + one formatting pass.
-    Returns None to escalate to the agent loop.
+    Returns a result dict or None to escalate to the agent loop.
     """
     question = _decorate_question(request)
 
-    # 1. Generate SQL
     try:
         sql = _generate_single_shot_sql(question)
         sql = validate_sql(sql, settings.gcp_project_id)
-    except SQLValidationError as e:
-        logger.info("Fast path SQL invalid: %s", e)
-        return None
-    except Exception as e:
-        logger.info("Fast path SQL gen failed: %s", e)
+    except (SQLValidationError, Exception) as e:
+        logger.info("Fast path SQL failed: %s", e)
         return None
 
     sql = _qualify_tables(sql, settings.gcp_project_id)
 
-    # 2. Execute
     try:
         rows = bq_client.query(sql)
     except Exception as e:
         logger.info("Fast path SQL execution failed: %s", e)
         return None
 
-    # 3. Empty result → escalate so the agent can retry / list_metrics
     if not rows:
         return None
 
-    # 4. Format answer
-    doc_ids = [r["document_id"] for r in rows if r.get("document_id")]
+    doc_ids = list({r["document_id"] for r in rows if r.get("document_id")})
     citations = lookup_citations(
-        bq_client,
-        settings.gcp_project_id,
-        settings.bq_cur_dataset,
-        settings.bq_raw_dataset,
-        list(set(doc_ids)),
+        bq_client, settings.gcp_project_id,
+        settings.bq_cur_dataset, settings.bq_raw_dataset, doc_ids,
     )
     answer = _format_answer(question, rows, citations)
 
-    return AskResponse(
-        answer=answer,
-        sql=sql,
-        sources=[
+    return {
+        "answer": answer,
+        "sql": sql,
+        "sources": [
             {"title": c.title, "url": c.source_url, "department": c.department}
             for c in citations
         ],
-        rows_returned=len(rows),
-        tool_calls=[
+        "rows_returned": len(rows),
+        "tool_calls": [
             {"name": "fast_path_query", "input": {"sql": sql}, "is_error": False}
         ],
-        path="fast",
-    )
+        "path": "fast",
+    }
 
 
 def _generate_single_shot_sql(question: str) -> str:
@@ -302,8 +323,17 @@ def _format_answer(question: str, rows: list[dict], citations: list) -> str:
 # ──────────────────────────────────────────────────────────────────────────
 
 
-def _agent_loop(request: AskRequest) -> AskResponse:
-    """Tool-use loop with last-turn forcing + final-summary backstop."""
+TOOL_STATUS_MESSAGES = {
+    "query_data": "querying the warehouse...",
+    "list_metrics": "searching metrics...",
+    "list_time_periods": "checking time periods...",
+    "list_geographies": "looking up geographies...",
+    "describe_coverage": "surveying data coverage...",
+}
+
+
+def _agent_loop_streaming(request: AskRequest):
+    """Generator that yields NDJSON events during the agent loop."""
     question = _decorate_question(request)
     messages: list[dict] = [{"role": "user", "content": question}]
     collected_doc_ids: set[str] = set()
@@ -311,6 +341,8 @@ def _agent_loop(request: AskRequest) -> AskResponse:
     last_sql = ""
     last_rows_returned = 0
     response = None
+
+    yield _emit("status", message="thinking...")
 
     for iteration in range(MAX_TOOL_ITERATIONS):
         try:
@@ -323,7 +355,12 @@ def _agent_loop(request: AskRequest) -> AskResponse:
             )
         except anthropic.BadRequestError as e:
             logger.error("Anthropic bad request: %s", e)
-            raise HTTPException(status_code=500, detail=f"LLM call failed: {e}")
+            yield _emit("result", data={
+                "answer": f"LLM call failed: {e}",
+                "sql": last_sql, "sources": [], "rows_returned": 0,
+                "tool_calls": tool_calls_log, "path": "agent",
+            })
+            return
 
         messages.append({"role": "assistant", "content": response.content})
 
@@ -331,7 +368,6 @@ def _agent_loop(request: AskRequest) -> AskResponse:
             break
 
         if response.stop_reason != "tool_use":
-            logger.warning("Unexpected stop_reason=%s", response.stop_reason)
             break
 
         # Execute tool calls
@@ -339,6 +375,10 @@ def _agent_loop(request: AskRequest) -> AskResponse:
         for block in response.content:
             if block.type != "tool_use":
                 continue
+
+            status_msg = TOOL_STATUS_MESSAGES.get(block.name, f"running {block.name}...")
+            yield _emit("status", message=status_msg)
+
             logger.info("tool_use: name=%s input=%s", block.name, _truncate(block.input))
             result = dispatch_tool(
                 block.name, block.input, bq_client,
@@ -349,16 +389,20 @@ def _agent_loop(request: AskRequest) -> AskResponse:
             if block.name == "query_data" and isinstance(block.input, dict):
                 last_sql = block.input.get("sql", last_sql)
                 try:
-                    import json as _json
                     parsed = _json.loads(result.content)
                     if isinstance(parsed, dict) and "rows_returned" in parsed:
                         last_rows_returned = int(parsed["rows_returned"])
+                        yield _emit("status",
+                                    message=f"got {last_rows_returned} rows — thinking...")
                 except Exception:
                     pass
 
-            tool_calls_log.append({
+            tc_entry = {
                 "name": block.name, "input": block.input, "is_error": result.is_error,
-            })
+            }
+            tool_calls_log.append(tc_entry)
+            yield _emit("tool_call", data=tc_entry)
+
             tool_results.append({
                 "type": "tool_result",
                 "tool_use_id": block.id,
@@ -366,8 +410,6 @@ def _agent_loop(request: AskRequest) -> AskResponse:
                 "is_error": result.is_error,
             })
 
-        # Last-turn forcing: if next iteration is the final one, append a hint
-        # to the same user message that carries the tool_results.
         is_second_to_last = iteration == MAX_TOOL_ITERATIONS - 2
         user_content: list = list(tool_results)
         if is_second_to_last:
@@ -380,10 +422,11 @@ def _agent_loop(request: AskRequest) -> AskResponse:
             })
         messages.append({"role": "user", "content": user_content})
 
-    # Backstop: if we exited without end_turn, force one no-tools call so the
-    # user always gets an answer.
+        yield _emit("status", message="thinking...")
+
+    # Backstop: force a final no-tools call if Claude didn't say end_turn
     if response is None or response.stop_reason != "end_turn":
-        logger.info("Forcing final no-tools summary call")
+        yield _emit("status", message="wrapping up...")
         try:
             response = llm_client.messages.create(
                 model=config.llm_model,
@@ -395,9 +438,10 @@ def _agent_loop(request: AskRequest) -> AskResponse:
                 ),
                 messages=messages,
             )
-            messages.append({"role": "assistant", "content": response.content})
         except Exception as e:
             logger.error("Final summary call failed: %s", e)
+
+    yield _emit("status", message="composing the answer...")
 
     answer = _extract_final_text(response.content) if response else ""
     if not answer.strip():
@@ -408,24 +452,22 @@ def _agent_loop(request: AskRequest) -> AskResponse:
         )
 
     citations = lookup_citations(
-        bq_client,
-        settings.gcp_project_id,
-        settings.bq_cur_dataset,
-        settings.bq_raw_dataset,
+        bq_client, settings.gcp_project_id,
+        settings.bq_cur_dataset, settings.bq_raw_dataset,
         list(collected_doc_ids),
     )
 
-    return AskResponse(
-        answer=answer,
-        sql=last_sql,
-        sources=[
+    yield _emit("result", data={
+        "answer": answer,
+        "sql": last_sql,
+        "sources": [
             {"title": c.title, "url": c.source_url, "department": c.department}
             for c in citations
         ],
-        rows_returned=last_rows_returned,
-        tool_calls=tool_calls_log,
-        path="agent",
-    )
+        "rows_returned": last_rows_returned,
+        "tool_calls": tool_calls_log,
+        "path": "agent",
+    })
 
 
 # ──────────────────────────────────────────────────────────────────────────
